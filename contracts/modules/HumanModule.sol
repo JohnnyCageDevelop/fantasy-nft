@@ -31,6 +31,48 @@ contract HumanModule is RaceModule {
         return arr;
     }
 
+    function getBodyPicturesUris(Gender gender)
+        internal
+        view
+        override
+        returns (string[] memory)
+    {
+        string[] memory arr = new string[](2);
+        if (gender == Gender.Male) {
+            arr[0] = "muscular_human_male";
+            arr[1] = "slim_human_male";
+        } else {
+            arr[0] = "muscular_human_female";
+            arr[1] = "slim_human_female";
+        }
+    }
+
+    function getArmorPicturesUris(Gender gender, CharacterClass characterClass)
+        internal
+        view
+        override
+        returns (string[] memory)
+    {
+        string[] memory arr = new string[](2);
+        if (gender == Gender.Male) {
+            if (characterClass == CharacterClass.Barbarian) {
+                arr[0] = "fur_human_male";
+                arr[1] = "leather_human_male";
+            } else if (characterClass == CharacterClass.Mage) {
+                arr[0] = "robe_human_male";
+                arr[1] = "cloth_human_male";
+            }
+        } else {
+            if (characterClass == CharacterClass.Barbarian) {
+                arr[0] = "fur_human_female";
+                arr[1] = "leather_human_female";
+            } else if (characterClass == CharacterClass.Mage) {
+                arr[0] = "robe_human_female";
+                arr[1] = "cloth_human_female";
+            }
+        }
+    }
+
     function getLastNames() internal view override returns (string[] memory) {
         string[] memory arr = new string[](3);
         arr[0] = "Taylor";

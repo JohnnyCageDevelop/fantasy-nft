@@ -7,6 +7,8 @@ import "../Types.sol";
 abstract contract RaceModule {
     mapping(Gender => string[]) public firstNames;
     string[] public lastNames;
+    mapping(Gender => string[]) public bodyPicturesUris;
+    mapping(CharacterClass => mapping(Gender => string[])) public armorPicturesUris;
 
     constructor() public {
         firstNames[Gender.Male] = getFirstNames(Gender.Male);
@@ -22,9 +24,29 @@ abstract contract RaceModule {
         return lastNames.length;
     }
 
+    function getBodyPicturesUrisCount(Gender gender) public view returns(uint256) {
+        return bodyPicturesUris[gender].length;
+    }
+
+    function getArmorPicturesUrisCount(CharacterClass characterClass, Gender gender) public view returns(uint256) {
+        return armorPicturesUris[characterClass][gender].length;
+    }
+
     function getRaceName() external pure virtual returns (string memory);
 
     function getFirstNames(Gender gender)
+        internal
+        view
+        virtual
+        returns (string[] memory);
+
+    function getBodyPicturesUris(Gender gender)
+        internal
+        view
+        virtual
+        returns (string[] memory);
+
+    function getArmorPicturesUris(Gender gender, CharacterClass characterClass)
         internal
         view
         virtual

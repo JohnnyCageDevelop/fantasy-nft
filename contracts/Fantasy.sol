@@ -45,11 +45,7 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
         address _vrfCoordinator,
         address _link,
         bytes32 _keyHash
-    )
-        public
-        VRFConsumerBase(_vrfCoordinator, _link)
-        ERC721("Fantasy", "FAY")
-    {
+    ) public VRFConsumerBase(_vrfCoordinator, _link) ERC721("Fantasy", "FAY") {
         artist = _artist;
         artistFee = _artistFee;
         chainlinkFee = _chainlinkFee;
@@ -145,10 +141,18 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
         Gender gender = Gender(randomness % 2);
 
         Stats memory stats = Stats({
-            strength: ((randomness / 2) % 16) + 3 + raceModule.getStrengthBonus(),
-            endurance: ((randomness / 3) % 16) + 3 + raceModule.getEnduranceBonus(),
-            dexterity: ((randomness / 4) % 16) + 3 + raceModule.getDexterityBonus(),
-            intellect: ((randomness / 5) % 16) + 3 + raceModule.getIntellectBonus(),
+            strength: ((randomness / 2) % 16) +
+                3 +
+                raceModule.getStrengthBonus(),
+            endurance: ((randomness / 3) % 16) +
+                3 +
+                raceModule.getEnduranceBonus(),
+            dexterity: ((randomness / 4) % 16) +
+                3 +
+                raceModule.getDexterityBonus(),
+            intellect: ((randomness / 5) % 16) +
+                3 +
+                raceModule.getIntellectBonus(),
             mind: ((randomness / 6) % 16) + 3 + raceModule.getMindBonus()
         });
 
@@ -165,5 +169,18 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
         characters.push(character);
         pendingCharacter.isPending = false;
         _safeMint(pendingCharacter.owner, pendingCharacter.tokenId);
+    }
+
+    function getPicture(string memory race, Gender gender, CharacterClass characterClass, uint256 randomness)
+        public
+        view
+        returns (string memory bodyUri, string memory armorUi)
+    {
+        RaceModule raceModule = raceModuleRegistry.get(race);
+        uint256 bodyIndex = randomness % raceModule.getBodyPicturesUrisCount(gender);
+        string memory body = raceModule.bodyPicturesUris(gender, bodyIndex);
+        uint256 armorIndex = (randomness / 10) % raceModule.getArmorPicturesUrisCount(characterClass, gender);
+        string memory armor = raceModule.armorPicturesUris(characterClass, gender, armorIndex);
+        return (body, armor);
     }
 }

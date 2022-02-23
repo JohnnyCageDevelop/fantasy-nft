@@ -41,3 +41,4 @@ struct RaceModuleRegistry {
     RaceModule[] raceModules;
     mapping(string => IndexRef) indexByRace;
 }
+

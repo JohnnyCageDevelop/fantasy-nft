@@ -1,5 +1,7 @@
 TODO:
 
+Character class module ?
+
 1. Picture generation (basic). Image parts hosted on IPFS and assembling done in smart contract, but picture generation done by third party for convenience should be ok. Any way to make also decentralized, with for ex chainlink ?
 2. Allow people to change race modules based on votes (DAO).
 3. Split module change code into 3 functions: addRaceModule (requires not exists), updateRaceModule (require exists) and removeRaceModule (requires exists)
@@ -11,3 +13,4 @@ To increase the dungeon"s level, the dungeon master has to stake more ETH.
 "released" from the dungeon without their money (staked eth)).
 NFT^s for character equipment ? Maybe this can be taken away when failing ana devtnrue, or a random piece of equipment ? Also, characters gain exp based on the difficulty of the adventure
 6. PvP ? Colmbat ? take stats into account, maybe reimplement DnD's combat system
+7. Fuzzy testing

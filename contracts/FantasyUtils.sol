@@ -29,6 +29,12 @@ library FantasyUtils {
         }
     }
 
+    function get(RaceModuleRegistry storage registry, string calldata race) external view returns (RaceModule) {
+        IndexRef memory index = registry.indexByRace[race];
+        require(index.present, "unknown race");
+        return registry.raceModules[index.value];
+    }
+
     function choose(RaceModuleRegistry storage registry, uint256 randomness) external view returns(RaceModule module) {
         return registry.raceModules[randomness % registry.raceModules.length];
     }
