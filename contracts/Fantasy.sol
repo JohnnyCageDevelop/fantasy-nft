@@ -24,7 +24,7 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
     uint256 public artistFee;
     address payable public artist;
 
-    Character[] characters;
+    mapping(uint256 => Character) characters;
     mapping(bytes32 => PendingCharacter) pendingCharacterByRequestId;
     mapping(uint256 => bytes32) public requestIdByTokenId;
     uint256 public tokenCounter;
@@ -166,9 +166,9 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
             gender: gender
         });
 
-        characters.push(character);
-        pendingCharacter.isPending = false;
+        characters[pendingCharacter.tokenId] = character;
         _safeMint(pendingCharacter.owner, pendingCharacter.tokenId);
+        delete pendingCharacterByRequestId[requestId];
     }
 
     function getPicture(string memory race, Gender gender, CharacterClass characterClass, uint256 randomness)

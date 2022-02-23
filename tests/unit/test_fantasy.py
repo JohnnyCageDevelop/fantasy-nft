@@ -54,5 +54,8 @@ def test_collectible_minted():
     assert character.intellect == 15
     assert character.mind == 5
     assert character.gender == Gender.Female;
+
+    assert fantasy.isPendingCharacter(0) == False
+    assert fantasy.isPendingCharacter(1) == False
     
     
