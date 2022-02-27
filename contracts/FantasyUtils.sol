@@ -53,7 +53,10 @@ library FantasyUtils {
         IndexRef memory index = registry.indexByRace[race];
         return index.present;
     }
-
+    
+    function getCount(RaceModuleRegistry storage registry) external view returns(uint256) {
+        return registry.raceModules.length;
+    }
 
     function choose(RaceModuleRegistry storage registry, uint256 randomness) external view returns(RaceModule module) {
         return registry.raceModules[randomness % registry.raceModules.length];

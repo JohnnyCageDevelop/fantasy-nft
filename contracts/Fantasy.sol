@@ -71,6 +71,18 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
         emit RaceModuleUpdated(address(module), msg.sender);
     }
 
+    function getRaceModulesCount() public view returns(uint256) {
+        return raceModuleRegistry.raceModules.length;
+    }
+
+    function getRaceModuleAddress(uint256 index) public view returns(address) {
+        return address(raceModuleRegistry.raceModules[index]);
+    }
+
+    function getRaceModuleAddress(string memory race) public view returns(address) {
+        return address(raceModuleRegistry.get(race));
+    }
+
     function createCharacter() external payable returns (uint256 tokenId) {
         require(msg.value == artistFee, "incorrect artistFee");
         uint256 newTokenId = tokenCounter;

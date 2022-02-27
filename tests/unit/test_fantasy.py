@@ -1,4 +1,4 @@
-from brownie import Fantasy, network
+from brownie import Fantasy, network, HumanModule, DwarfModule
 from scripts.helpful_scripts import LOCAL_BLOCKAIN_ENVIRONMENTS, Gender, get_account, get_character, CharacterClass
 from scripts.deploy import ARTIST_FEE, callback_with_randomness, deploy_fantasy
 import pytest
@@ -59,4 +59,21 @@ def test_collectible_minted():
     assert fantasy.isPendingCharacter(1) == False
     
     
-    
+def test_add_module():
+    if network.show_active() not in LOCAL_BLOCKAIN_ENVIRONMENTS:
+        pytest.skip()
+    fantasy = deploy_fantasy(with_modules=False)
+    account = get_account()
+    human_module = HumanModule.deploy({"from": account})
+    dwarf_module = DwarfModule.deploy({"from": account})
+    # sanity check
+    assert fantasy.getRaceModulesCount() == 0
+
+    fantasy.addRaceModule(human_module.address, {"from": account})
+    fantasy.addRaceModule(dwarf_module.address, {"from": account})
+
+    assert fantasy.getRaceModulesCount() == 2
+    assert fantasy.getRaceModuleAddress["uint256"](0) == human_module.address
+    assert fantasy.getRaceModuleAddress["uint256"](1) == dwarf_module.address
+    assert fantasy.getRaceModuleAddress["string"](human_module.getRaceName()) == human_module.address
+    assert fantasy.getRaceModuleAddress["string"](dwarf_module.getRaceName()) == dwarf_module.address

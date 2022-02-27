@@ -12,4 +12,5 @@ To increase the dungeon"s level, the dungeon master has to stake more ETH.
 "released" from the dungeon without their money (staked eth)).
 NFT^s for character equipment ? Maybe this can be taken away when failing ana devtnrue, or a random piece of equipment ? Also, characters gain exp based on the difficulty of the adventure
 5. PvP ? Colmbat ? take stats into account, maybe reimplement DnD's combat system
-6. Fuzzy testing
+6. More unit tests ?
+7. Fuzzy testing

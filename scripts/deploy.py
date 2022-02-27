@@ -8,7 +8,7 @@ open_sea_url = "https://testnets.opensea.io/assets/{}/{}"
 
 ARTIST_FEE = Web3.toWei(0.0001, "ether")
 
-def deploy_fantasy():
+def deploy_fantasy(with_modules: bool = True):
     account = get_account()
     artist = account
     chainlink_fee = config["networks"][network.show_active()]["chainlink_fee"]
@@ -19,10 +19,11 @@ def deploy_fantasy():
     FantasyUtils.deploy({"from": account})
     fantasy = Fantasy.deploy(artist, ARTIST_FEE, chainlink_fee, vrf_coordinator.address, link.address, key_hash, {
                                     "from": account}, publish_source=config["networks"][network.show_active()].get("verify"))
-    human_module = HumanModule.deploy({"from": account})
-    dwarf_module = DwarfModule.deploy({"from": account})
-    fantasy.addRaceModule(human_module.address, {"from": account})
-    fantasy.addRaceModule(dwarf_module.address, {"from": account})
+    if with_modules:
+        human_module = HumanModule.deploy({"from": account})
+        dwarf_module = DwarfModule.deploy({"from": account})
+        fantasy.addRaceModule(human_module.address, {"from": account})
+        fantasy.addRaceModule(dwarf_module.address, {"from": account})
 
     fund_with_link(contract_address=fantasy.address, link_token=link, amount=Web3.toWei(1, "ether"))
 
