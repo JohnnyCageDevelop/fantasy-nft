@@ -19,21 +19,41 @@ library FantasyUtils {
         return dict[uint8(gender)];
     }
 
-    function set(RaceModuleRegistry storage registry, RaceModule module) external {
+    function add(RaceModuleRegistry storage registry, RaceModule module) external {
         IndexRef memory index = registry.indexByRace[module.getRaceName()];
-        if (index.present) {
-            registry.raceModules[index.value] = module;
-        } else {
-            registry.raceModules.push(module);
-            registry.indexByRace[module.getRaceName()] = IndexRef({value:  registry.raceModules.length - 1, present: true});
-        }
+        require(!index.present, "race already added");
+        registry.raceModules.push(module);
+        registry.indexByRace[module.getRaceName()] = IndexRef({value:  registry.raceModules.length - 1, present: true});
     }
+
+    function update(RaceModuleRegistry storage registry, RaceModule module) external {
+        IndexRef memory index = registry.indexByRace[module.getRaceName()];
+        require(index.present, "unknown race");
+        registry.raceModules.push(module);
+        registry.indexByRace[module.getRaceName()] = IndexRef({value:  registry.raceModules.length - 1, present: true});
+    }
+
+    function remove(RaceModuleRegistry storage registry, string calldata race) external returns(RaceModule) {
+        IndexRef memory index = registry.indexByRace[race];
+        require(index.present, "unknown race");
+        RaceModule module = registry.raceModules[index.value];
+        delete registry.raceModules[index.value];
+        delete registry.indexByRace[race];
+        return module;
+    }
+
 
     function get(RaceModuleRegistry storage registry, string calldata race) external view returns (RaceModule) {
         IndexRef memory index = registry.indexByRace[race];
         require(index.present, "unknown race");
         return registry.raceModules[index.value];
     }
+
+    function contains(RaceModuleRegistry storage registry, string calldata race) external view returns(bool) {
+        IndexRef memory index = registry.indexByRace[race];
+        return index.present;
+    }
+
 
     function choose(RaceModuleRegistry storage registry, uint256 randomness) external view returns(RaceModule module) {
         return registry.raceModules[randomness % registry.raceModules.length];

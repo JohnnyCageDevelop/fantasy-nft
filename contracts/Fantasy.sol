@@ -32,7 +32,9 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
 
     RaceModuleRegistry raceModuleRegistry;
 
-    event RaceModuleSet(address indexed module, address indexed setBy);
+    event RaceModuleAdded(address indexed module, address indexed addedBy);
+    event RaceModuleRemoved(address indexed module, address indexed removedBy);
+    event RaceModuleUpdated(address indexed module, address indexed updatedBy);
     event CharacterGenerationStarted(
         uint256 indexed tokenId,
         address indexed startedBy
@@ -52,10 +54,21 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
         keyHash = _keyHash;
     }
 
-    function setRaceModule(address _module) public onlyOwner {
+    function addRaceModule(address _module) public onlyOwner {
         RaceModule module = RaceModule(_module);
-        raceModuleRegistry.set(module);
-        emit RaceModuleSet(_module, owner());
+        raceModuleRegistry.add(module);
+        emit RaceModuleAdded(_module, msg.sender);
+    }
+
+    function removeRaceModule(string memory race) public onlyOwner {
+        RaceModule module = raceModuleRegistry.remove(race);
+        emit RaceModuleRemoved(address(module), msg.sender);
+    } 
+
+    function updateRaceModule(address _module) public onlyOwner {
+        RaceModule module = RaceModule(_module);
+        raceModuleRegistry.update(module);
+        emit RaceModuleUpdated(address(module), msg.sender);
     }
 
     function createCharacter() external payable returns (uint256 tokenId) {

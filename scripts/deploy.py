@@ -21,8 +21,8 @@ def deploy_fantasy():
                                     "from": account}, publish_source=config["networks"][network.show_active()].get("verify"))
     human_module = HumanModule.deploy({"from": account})
     dwarf_module = DwarfModule.deploy({"from": account})
-    fantasy.setRaceModule(human_module.address, {"from": account})
-    fantasy.setRaceModule(dwarf_module.address, {"from": account})
+    fantasy.addRaceModule(human_module.address, {"from": account})
+    fantasy.addRaceModule(dwarf_module.address, {"from": account})
 
     fund_with_link(contract_address=fantasy.address, link_token=link, amount=Web3.toWei(1, "ether"))
 

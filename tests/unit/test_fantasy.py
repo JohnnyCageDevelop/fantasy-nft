@@ -1,6 +1,6 @@
 from brownie import Fantasy, network
 from scripts.helpful_scripts import LOCAL_BLOCKAIN_ENVIRONMENTS, Gender, get_account, get_character, CharacterClass
-from scripts.deploy_and_create import ARTIST_FEE, callback_with_randomness, deploy_fantasy
+from scripts.deploy import ARTIST_FEE, callback_with_randomness, deploy_fantasy
 import pytest
 
 def test_can_create_collectible():
@@ -57,5 +57,6 @@ def test_collectible_minted():
 
     assert fantasy.isPendingCharacter(0) == False
     assert fantasy.isPendingCharacter(1) == False
+    
     
     
