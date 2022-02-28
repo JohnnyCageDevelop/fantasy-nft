@@ -114,7 +114,6 @@ def test_update_module():
     fantasy = deploy_fantasy(with_modules=True)
     account = get_account()
     human_module = HumanModule[-1]
-    dwarf_module = DwarfModule[-1]
     # sanity checks
     assert fantasy.getRaceModuleAddress(human_module.getRaceName()) == human_module.address
 
