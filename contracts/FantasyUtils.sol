@@ -37,8 +37,16 @@ library FantasyUtils {
         IndexRef memory index = registry.indexByRace[race];
         require(index.present, "unknown race");
         RaceModule module = registry.raceModules[index.value];
-        delete registry.raceModules[index.value];
+
+        if (registry.raceModules.length > 1) {
+            RaceModule lastModule = registry.raceModules[registry.raceModules.length - 1];
+            IndexRef storage lastModuleIndex = registry.indexByRace[lastModule.getRaceName()];
+            lastModuleIndex.value = index.value;
+            registry.raceModules[lastModuleIndex.value] = lastModule;
+        }
+        registry.raceModules.pop();
         delete registry.indexByRace[race];
+
         return module;
     }
 

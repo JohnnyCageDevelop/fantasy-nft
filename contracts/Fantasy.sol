@@ -75,10 +75,6 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
         return raceModuleRegistry.raceModules.length;
     }
 
-    function getRaceModuleAddress(uint256 index) public view returns(address) {
-        return address(raceModuleRegistry.raceModules[index]);
-    }
-
     function getRaceModuleAddress(string memory race) public view returns(address) {
         return address(raceModuleRegistry.get(race));
     }

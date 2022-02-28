@@ -1,7 +1,8 @@
-from brownie import Fantasy, network, HumanModule, DwarfModule
+from brownie import Fantasy, network, HumanModule, DwarfModule, exceptions
 from scripts.helpful_scripts import LOCAL_BLOCKAIN_ENVIRONMENTS, Gender, get_account, get_character, CharacterClass
 from scripts.deploy import ARTIST_FEE, callback_with_randomness, deploy_fantasy
 import pytest
+
 
 def test_can_create_collectible():
     if network.show_active() not in LOCAL_BLOCKAIN_ENVIRONMENTS:
@@ -25,8 +26,9 @@ def test_collectible_minted():
     callback_with_randomness(fantasy=fantasy, token_id=0, randomness=2222)
     tx = fantasy.createCharacter({"from": second_account, "value": ARTIST_FEE})
     tx.wait(1)
-    callback_with_randomness(fantasy=fantasy, token_id=1, randomness=92136781236172380810232078612386123876312781)
-    
+    callback_with_randomness(fantasy=fantasy, token_id=1,
+                             randomness=92136781236172380810232078612386123876312781)
+
     assert fantasy.ownerOf(0) == account.address
     character = get_character(dnd_contract=fantasy, token_id=0)
     assert character.first_name == "Marcel"
@@ -39,7 +41,7 @@ def test_collectible_minted():
     assert character.dexterity == 15
     assert character.intellect == 16
     assert character.mind == 6
-    assert character.gender == Gender.Male;
+    assert character.gender == Gender.Male
 
     assert fantasy.ownerOf(1) == second_account.address
     character = get_character(dnd_contract=fantasy, token_id=1)
@@ -53,12 +55,12 @@ def test_collectible_minted():
     assert character.dexterity == 6
     assert character.intellect == 15
     assert character.mind == 5
-    assert character.gender == Gender.Female;
+    assert character.gender == Gender.Female
 
     assert fantasy.isPendingCharacter(0) == False
     assert fantasy.isPendingCharacter(1) == False
-    
-    
+
+
 def test_add_module():
     if network.show_active() not in LOCAL_BLOCKAIN_ENVIRONMENTS:
         pytest.skip()
@@ -73,7 +75,34 @@ def test_add_module():
     fantasy.addRaceModule(dwarf_module.address, {"from": account})
 
     assert fantasy.getRaceModulesCount() == 2
-    assert fantasy.getRaceModuleAddress["uint256"](0) == human_module.address
-    assert fantasy.getRaceModuleAddress["uint256"](1) == dwarf_module.address
-    assert fantasy.getRaceModuleAddress["string"](human_module.getRaceName()) == human_module.address
-    assert fantasy.getRaceModuleAddress["string"](dwarf_module.getRaceName()) == dwarf_module.address
+    assert fantasy.getRaceModuleAddress(
+        human_module.getRaceName()) == human_module.address
+    assert fantasy.getRaceModuleAddress(
+        dwarf_module.getRaceName()) == dwarf_module.address
+
+
+def test_remove_module():
+    if network.show_active() not in LOCAL_BLOCKAIN_ENVIRONMENTS:
+        pytest.skip()
+    fantasy = deploy_fantasy(with_modules=True)
+    human_module = HumanModule[-1]
+    dwarf_module = DwarfModule[-1]
+    human_race_name = human_module.getRaceName()
+    dwarf_race_name = dwarf_module.getRaceName()
+    # sanity checks
+    assert fantasy.getRaceModulesCount() == 2
+    assert fantasy.getRaceModuleAddress(
+        human_race_name) == human_module.address
+    assert fantasy.getRaceModuleAddress(
+        dwarf_race_name) == dwarf_module.address
+
+    tx = fantasy.removeRaceModule(human_race_name)
+    print(tx.events)
+    assert fantasy.getRaceModulesCount() == 1
+    with pytest.raises(exceptions.VirtualMachineError):
+        fantasy.getRaceModuleAddress(human_race_name)
+
+    fantasy.removeRaceModule(dwarf_race_name)
+    assert fantasy.getRaceModulesCount() == 0
+    with pytest.raises(exceptions.VirtualMachineError):
+        fantasy.getRaceModuleAddress(dwarf_race_name)
