@@ -1,4 +1,4 @@
-from brownie import Fantasy, network, HumanModule, DwarfModule, exceptions
+from brownie import Fantasy, network, HumanModule, DwarfModule, exceptions, MockHumanModule
 from scripts.helpful_scripts import LOCAL_BLOCKAIN_ENVIRONMENTS, Gender, get_account, get_character, CharacterClass
 from scripts.deploy import ARTIST_FEE, callback_with_randomness, deploy_fantasy
 import pytest
@@ -106,3 +106,20 @@ def test_remove_module():
     assert fantasy.getRaceModulesCount() == 0
     with pytest.raises(exceptions.VirtualMachineError):
         fantasy.getRaceModuleAddress(dwarf_race_name)
+
+
+def test_update_module():
+    if network.show_active() not in LOCAL_BLOCKAIN_ENVIRONMENTS:
+        pytest.skip()
+    fantasy = deploy_fantasy(with_modules=True)
+    account = get_account()
+    human_module = HumanModule[-1]
+    dwarf_module = DwarfModule[-1]
+    # sanity checks
+    assert fantasy.getRaceModuleAddress(human_module.getRaceName()) == human_module.address
+
+    new_human_module = MockHumanModule.deploy({"from": account})
+    fantasy.updateRaceModule(new_human_module)
+
+    assert fantasy.getRaceModuleAddress(human_module.getRaceName()) == new_human_module.address
+    assert fantasy.getRaceModuleAddress(new_human_module.getRaceName()) == new_human_module.address
