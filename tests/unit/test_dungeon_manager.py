@@ -24,8 +24,10 @@ def test_create_dungeon_with_ether():
     account = get_account()
     treasure = Web3.toWei(1, "ether")
 
-    dm.createDungeon({"from": account, "value": treasure})
+    tx = dm.createDungeon({"from": account, "value": treasure})
 
+    assert tx.events["DungeonCreated"]["creator"] == account.address
+    assert tx.events["DungeonCreated"]["treasure"] == treasure
     dungeon = dm.dungeons(account.address)
     assert dungeon[0] == account.address
     assert dungeon[1] == treasure
@@ -68,8 +70,10 @@ def test_retire_dungeon_when_dungeon_active():
     dm.createDungeon({"from": account, "value": treasure})
     balance_before_retiring_dungeon = account.balance()
     
-    dm.retireDungeon({"from": account})
+    tx = dm.retireDungeon({"from": account})
 
+    assert tx.events["DungeonRetired"]["creator"] == account.address
+    assert tx.events["DungeonRetired"]["treasure"] == treasure
     assert dm.balance() == 0
     assert account.balance() > balance_before_retiring_dungeon # TODO better check by computing tx fee ?
 
