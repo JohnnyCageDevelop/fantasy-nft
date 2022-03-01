@@ -86,7 +86,7 @@ contract DungeonManager is VRFConsumerBase {
     function enterDungeon(address dungeonCreator, uint256[] memory tokenIds)
         public
     {
-        // TODO need to check that a smart contract cannot create a dungeon unless it implements IERC721Receiver
+        // TODO need to check that a smart contract cannot create a dungeon unless it implements IERC721Receiver, same for an address entering a dungeon
         // else, it cannot receive the tokens if the dungeon wins.
         // TODO: Can someone do an attack by sending huge array or something ? I remember something about gas attacks. Wouldnt the transaction just
         // fail by running out of gas ?
