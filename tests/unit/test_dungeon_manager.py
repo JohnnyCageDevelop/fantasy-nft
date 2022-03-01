@@ -33,6 +33,22 @@ def test_create_dungeon_with_ether():
 
     assert_adventuring_party_is_empty(dungeon[2])
 
+def test_create_dungeon_when_one_already_exists():
+    if network.show_active() not in LOCAL_BLOCKAIN_ENVIRONMENTS:
+        pytest.skip()
+    fantasy = deploy_fantasy()
+    dm = deploy_dungeon_manager(fantasy_address=fantasy.address)
+    account = get_account()
+    treasure = Web3.toWei(1, "ether")
+
+    dm.createDungeon({"from": account, "value": treasure})
+
+    with pytest.raises(exceptions.VirtualMachineError):
+        dm.createDungeon({"from": account, "value": treasure})
+
+    with pytest.raises(exceptions.VirtualMachineError):
+        dm.createDungeon({"from": account, "value": 1})
+
 def assert_adventuring_party_is_empty(party):
     assert party[0] == ZERO_ADDRESS
     assert len(party[1]) == 0
