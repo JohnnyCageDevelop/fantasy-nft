@@ -19,7 +19,7 @@ contract MockHumanModule is RaceModule {
         returns (string[] memory)
     {
         string[] memory arr = new string[](1);
-        arr[0] = "mock_first_name";
+        arr[0] = gender == Gender.Male ? "mock_first_name_male" : "mock_first_name_female";
         return arr;
     }
 
@@ -30,7 +30,7 @@ contract MockHumanModule is RaceModule {
         returns (string[] memory)
     {
         string[] memory arr = new string[](1);
-        arr[0] = "mock_body_pic";
+        arr[0] = gender == Gender.Male ? "mock_body_pic_male" : "mock_body_pic_female";
         return arr;
     }
 
@@ -41,7 +41,11 @@ contract MockHumanModule is RaceModule {
         returns (string[] memory)
     {
         string[] memory arr = new string[](1);
-        arr[0] = "mock_armor_pic";
+        if (characterClass == CharacterClass.Mage) {
+            arr[0] = gender == Gender.Male ? "mock_armor_pic_mage_male" : "mock_armor_pic_mage_female";
+        } else {
+            arr[0] = "mock_armor_pic";
+        }
         return arr;
     }
 

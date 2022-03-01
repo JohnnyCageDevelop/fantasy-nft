@@ -63,7 +63,7 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
     function removeRaceModule(string memory race) public onlyOwner {
         RaceModule module = raceModuleRegistry.remove(race);
         emit RaceModuleRemoved(address(module), msg.sender);
-    } 
+    }
 
     function updateRaceModule(address _module) public onlyOwner {
         RaceModule module = RaceModule(_module);
@@ -71,11 +71,15 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
         emit RaceModuleUpdated(address(module), msg.sender);
     }
 
-    function getRaceModulesCount() public view returns(uint256) {
+    function getRaceModulesCount() public view returns (uint256) {
         return raceModuleRegistry.raceModules.length;
     }
 
-    function getRaceModuleAddress(string memory race) public view returns(address) {
+    function getRaceModuleAddress(string memory race)
+        public
+        view
+        returns (address)
+    {
         return address(raceModuleRegistry.get(race));
     }
 
@@ -90,9 +94,10 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
             owner: msg.sender,
             isPending: true
         });
-        // Send artistFee to owner
-        artist.transfer(artistFee);
+        (bool sent, ) = artist.call{value: artistFee}("");
+        require(sent, "failed to send fee to the artist");
         emit CharacterGenerationStarted(newTokenId, msg.sender);
+        return newTokenId;
     }
 
     function isPendingCharacter(uint256 tokenId) public view returns (bool) {
@@ -153,6 +158,7 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
         PendingCharacter storage pendingCharacter = pendingCharacterByRequestId[
             requestId
         ];
+        // TODO Isnt it said by chainlink that this function must not fail ?
         require(
             pendingCharacter.owner != address(0),
             "Token is not being created"
@@ -192,16 +198,23 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
         delete pendingCharacterByRequestId[requestId];
     }
 
-    function getPicture(string memory race, Gender gender, CharacterClass characterClass, uint256 randomness)
-        public
-        view
-        returns (string memory bodyUri, string memory armorUi)
-    {
+    function getPicture(
+        string memory race,
+        Gender gender,
+        CharacterClass characterClass,
+        uint256 randomness
+    ) public view returns (string memory bodyUri, string memory armorUi) {
         RaceModule raceModule = raceModuleRegistry.get(race);
-        uint256 bodyIndex = randomness % raceModule.getBodyPicturesUrisCount(gender);
+        uint256 bodyIndex = randomness %
+            raceModule.getBodyPicturesUrisCount(gender);
         string memory body = raceModule.bodyPicturesUris(gender, bodyIndex);
-        uint256 armorIndex = (randomness / 10) % raceModule.getArmorPicturesUrisCount(characterClass, gender);
-        string memory armor = raceModule.armorPicturesUris(characterClass, gender, armorIndex);
+        uint256 armorIndex = (randomness / 10) %
+            raceModule.getArmorPicturesUrisCount(characterClass, gender);
+        string memory armor = raceModule.armorPicturesUris(
+            characterClass,
+            gender,
+            armorIndex
+        );
         return (body, armor);
     }
 }

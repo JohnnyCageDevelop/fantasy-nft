@@ -42,3 +42,19 @@ struct RaceModuleRegistry {
     mapping(string => IndexRef) indexByRace;
 }
 
+struct Dungeon {
+    address creator;
+    uint256 treasure;
+    AdventuringParty partyInTheDungeon;
+}
+
+struct AdventuringParty {
+    address owner;
+    uint256[] tokenIds;
+    uint256 chanceToSucceed;
+}
+
+struct DungeonReward {
+    uint256[] tokenIds;
+    uint256 treasure;
+}

@@ -50,7 +50,6 @@ library FantasyUtils {
         return module;
     }
 
-
     function get(RaceModuleRegistry storage registry, string calldata race) external view returns (RaceModule) {
         IndexRef memory index = registry.indexByRace[race];
         require(index.present, "unknown race");
@@ -68,5 +67,15 @@ library FantasyUtils {
 
     function choose(RaceModuleRegistry storage registry, uint256 randomness) external view returns(RaceModule module) {
         return registry.raceModules[randomness % registry.raceModules.length];
+    }
+
+    function isPartyInside(Dungeon storage dungeon) external view returns(bool) {
+        return dungeon.partyInTheDungeon.owner != address(0);
+    }
+
+    function remove(DungeonReward[] storage rewards, uint256 index) external {
+        DungeonReward memory lastRewards = rewards[rewards.length - 1];
+        rewards[index] = lastRewards;
+        rewards.pop();
     }
 }
