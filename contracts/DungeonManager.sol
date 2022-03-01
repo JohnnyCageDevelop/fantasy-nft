@@ -7,7 +7,6 @@ import "./Fantasy.sol";
 import "./Types.sol";
 import "./FantasyUtils.sol";
 
-// TODO: events
 // TODO: safeguard mechanism so that if VRF coord doesnt respond after x time (e.g 1 day), everyone can get their tokens and eth back
 contract DungeonManager is VRFConsumerBase {
     using FantasyUtils for Dungeon;
@@ -24,6 +23,26 @@ contract DungeonManager is VRFConsumerBase {
 
     uint256 constant maxSuccessChancePerc = 99;
     int256 constant baseSuccessChancePerc = 50;
+
+    event DungeonCreated(address indexed creator, uint256 treasure);
+    event DungeonRetired(address indexed creator, uint256 treasure);
+    event DungeonEntered(
+        address indexed dungeonCreator,
+        address indexed partyOwner,
+        uint256[] tokenIds
+    );
+    event DungeonRaidSuccess(
+        address indexed dungeonCreator,
+        address indexed partyOwner,
+        uint256[] tokenIds,
+        uint256 roll
+    );
+    event DungeonRaidFailure(
+        address indexed dungeonCreator,
+        address indexed partyOwner,
+        uint256[] tokenIds,
+        uint256 roll
+    );
 
     constructor(
         address _fantasy,
@@ -49,6 +68,8 @@ contract DungeonManager is VRFConsumerBase {
             treasure: msg.value,
             partyInTheDungeon: getEmptyAdventuringParty()
         });
+
+        emit DungeonCreated(msg.sender, msg.value);
     }
 
     function getEmptyAdventuringParty()
@@ -80,6 +101,8 @@ contract DungeonManager is VRFConsumerBase {
 
         (bool sent, ) = msg.sender.call{value: treasure}("");
         require(sent, "failed to send treasure to creator");
+
+        emit DungeonRetired(msg.sender, treasure);
     }
 
     // TODO method for cancelling a dungeon and get back the staked ETH
@@ -118,6 +141,8 @@ contract DungeonManager is VRFConsumerBase {
         }
         bytes32 requestId = requestRandomness(keyHash, chainlinkFee);
         requestIdToDungeon[requestId] = dungeon;
+
+        emit DungeonEntered(dungeonCreator, msg.sender, tokenIds);
     }
 
     function fulfillRandomness(bytes32 requestId, uint256 randomness)
@@ -143,6 +168,14 @@ contract DungeonManager is VRFConsumerBase {
             // TODO: increase tokens exp based on how their chance of success
             delete dungeons[dungeon.creator];
             delete requestIdToDungeon[requestId];
+
+            // TODO: Are values still good after the delete ?
+            emit DungeonRaidSuccess(
+                dungeon.creator,
+                dungeon.partyInTheDungeon.owner,
+                dungeon.partyInTheDungeon.tokenIds,
+                roll
+            );
         } else {
             claimableRewards[dungeon.creator].push(
                 DungeonReward({
@@ -151,6 +184,14 @@ contract DungeonManager is VRFConsumerBase {
                 })
             );
             delete dungeon.partyInTheDungeon;
+
+            // TODO: Are values still good after the delete ?
+            emit DungeonRaidFailure(
+                dungeon.creator,
+                dungeon.partyInTheDungeon.owner,
+                dungeon.partyInTheDungeon.tokenIds,
+                roll
+            );
         }
     }
 
@@ -187,9 +228,10 @@ contract DungeonManager is VRFConsumerBase {
         }
         // TODO: Test for math operations safety, especially conversions!
         int256 treasureDifficulty = int256(treasure / 1 ether);
-        uint256 successChance = uint256((baseSuccessChancePerc -
-            treasureDifficulty +
-            totalLevels).zeroIfNegative());
+        uint256 successChance = uint256(
+            (baseSuccessChancePerc - treasureDifficulty + totalLevels)
+                .zeroIfNegative()
+        );
         return
             successChance <= maxSuccessChancePerc
                 ? successChance
