@@ -3,6 +3,7 @@ import json
 from brownie import accounts, network, config, VRFCoordinatorMock, LinkToken, Contract
 
 LOCAL_BLOCKAIN_ENVIRONMENTS = ["development", "ganache-local"]
+ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 
 def get_account(index=None, id=None):
