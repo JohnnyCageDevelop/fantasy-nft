@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // An example of a consumer contract that relies on a subscription for funding.
 pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
 
 import "@chainlink/contracts/src/v0.6/VRFConsumerBase.sol";
 import "./Fantasy.sol";
@@ -13,7 +14,7 @@ contract DungeonManager is VRFConsumerBase {
     using FantasyUtils for DungeonReward[];
     using FantasyUtils for int256;
 
-    mapping(address => Dungeon) dungeons;
+    mapping(address => Dungeon) public dungeons;
     mapping(bytes32 => Dungeon) requestIdToDungeon;
     mapping(address => DungeonReward[]) claimableRewards;
 

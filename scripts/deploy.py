@@ -78,7 +78,10 @@ def deploy_and_create_advanced():
     print(fantasy.isPendingCharacter(0))
     print(get_character(fantasy, 0))
     print(fantasy.ownerOf(0))
-    deploy_dungeon_manager(fantasy.address)
+    dm = deploy_dungeon_manager(fantasy.address)
+    tx = dm.createDungeon({"from": account, "value": Web3.toWei(1, "ether")})
+    tx.wait(1)
+    print(f"Dungeon: {dm.dungeons(account.address)}")
 
 def main():
     deploy_and_create_advanced()
