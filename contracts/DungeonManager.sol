@@ -12,6 +12,7 @@ import "./FantasyUtils.sol";
 contract DungeonManager is VRFConsumerBase {
     using FantasyUtils for Dungeon;
     using FantasyUtils for DungeonReward[];
+    using FantasyUtils for int256;
 
     mapping(address => Dungeon) dungeons;
     mapping(bytes32 => Dungeon) requestIdToDungeon;
@@ -22,7 +23,7 @@ contract DungeonManager is VRFConsumerBase {
     bytes32 keyHash;
 
     uint256 constant maxSuccessChancePerc = 99;
-    uint256 constant baseSuccessChancePerc = 50;
+    int256 constant baseSuccessChancePerc = 50;
 
     constructor(
         address _fantasy,
@@ -176,18 +177,19 @@ contract DungeonManager is VRFConsumerBase {
         uint256 treasure
     ) public view returns (uint256) {
         // TODO: Take stats into account ?
-        uint256 totalLevels = 0;
+        int256 totalLevels = 0;
         for (uint256 i = 0; i < tokenIds.length; i++) {
             // TODO use smaller value to ensure that it cannot have overflow or account for it somehow
             (, , , , uint256 level, ) = fantasy.getCharacterOverview(
                 tokenIds[i]
             );
-            totalLevels += level;
+            totalLevels += int256(level);
         }
-        uint256 treasureDifficulty = treasure / 1 ether;
-        uint256 successChance = baseSuccessChancePerc -
+        // TODO: Test for math operations safety, especially conversions!
+        int256 treasureDifficulty = int256(treasure / 1 ether);
+        uint256 successChance = uint256((baseSuccessChancePerc -
             treasureDifficulty +
-            totalLevels;
+            totalLevels).zeroIfNegative());
         return
             successChance <= maxSuccessChancePerc
                 ? successChance
