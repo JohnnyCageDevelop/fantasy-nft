@@ -45,7 +45,7 @@ struct RaceModuleRegistry {
 struct Dungeon {
     address creator;
     uint256 treasure;
-    AdventuringParty partyInTheDungeon;
+    AdventuringParty raidingParty;
 }
 
 struct AdventuringParty {

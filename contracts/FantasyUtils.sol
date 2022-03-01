@@ -117,12 +117,12 @@ library FantasyUtils {
         return registry.raceModules[randomness % registry.raceModules.length];
     }
 
-    function isPartyInside(Dungeon storage dungeon)
+    function isBeingRaided(Dungeon storage dungeon)
         external
         view
         returns (bool)
     {
-        return dungeon.partyInTheDungeon.owner != address(0);
+        return dungeon.raidingParty.owner != address(0);
     }
 
     function remove(DungeonReward[] storage rewards, uint256 index) external {

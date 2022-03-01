@@ -26,7 +26,7 @@ contract DungeonManager is VRFConsumerBase {
 
     event DungeonCreated(address indexed creator, uint256 treasure);
     event DungeonRetired(address indexed creator, uint256 treasure);
-    event DungeonEntered(
+    event DungeonRaidStarted(
         address indexed dungeonCreator,
         address indexed partyOwner,
         uint256[] tokenIds
@@ -66,7 +66,7 @@ contract DungeonManager is VRFConsumerBase {
         dungeons[msg.sender] = Dungeon({
             creator: msg.sender,
             treasure: msg.value,
-            partyInTheDungeon: getEmptyAdventuringParty()
+            raidingParty: getEmptyAdventuringParty()
         });
 
         emit DungeonCreated(msg.sender, msg.value);
@@ -92,7 +92,7 @@ contract DungeonManager is VRFConsumerBase {
             "there is no dungeon belonging to this address"
         );
         require(
-            !dungeons[msg.sender].isPartyInside(),
+            !dungeons[msg.sender].isBeingRaided(),
             "there is currently a party inside this dungeon"
         );
 
@@ -105,8 +105,7 @@ contract DungeonManager is VRFConsumerBase {
         emit DungeonRetired(msg.sender, treasure);
     }
 
-    // TODO method for cancelling a dungeon and get back the staked ETH
-    function enterDungeon(address dungeonCreator, uint256[] memory tokenIds)
+    function startDungeonRaid(address dungeonCreator, uint256[] memory tokenIds)
         public
     {
         // TODO need to check that a smart contract cannot create a dungeon unless it implements IERC721Receiver, same for an address entering a dungeon
@@ -119,7 +118,7 @@ contract DungeonManager is VRFConsumerBase {
         );
         Dungeon storage dungeon = dungeons[dungeonCreator];
         require(
-            !dungeon.isPartyInside(),
+            !dungeon.isBeingRaided(),
             "some adventurers are already in this dungeon"
         );
 
@@ -130,7 +129,7 @@ contract DungeonManager is VRFConsumerBase {
         );
         require(chanceToSucceed > 0, "your party has no chance to succeed");
 
-        dungeon.partyInTheDungeon = AdventuringParty({
+        dungeon.raidingParty = AdventuringParty({
             owner: msg.sender,
             tokenIds: tokenIds,
             chanceToSucceed: chanceToSucceed
@@ -142,7 +141,7 @@ contract DungeonManager is VRFConsumerBase {
         bytes32 requestId = requestRandomness(keyHash, chainlinkFee);
         requestIdToDungeon[requestId] = dungeon;
 
-        emit DungeonEntered(dungeonCreator, msg.sender, tokenIds);
+        emit DungeonRaidStarted(dungeonCreator, msg.sender, tokenIds);
     }
 
     function fulfillRandomness(bytes32 requestId, uint256 randomness)
@@ -152,16 +151,16 @@ contract DungeonManager is VRFConsumerBase {
         Dungeon storage dungeon = requestIdToDungeon[requestId];
         // TODO Isnt it said by chainlink that this function must not fail ?
         require(
-            dungeon.isPartyInside(),
+            dungeon.isBeingRaided(),
             "dungeon does not have a party inside"
         );
 
         uint256 roll = (randomness % 100) + 1;
-        if (roll <= dungeon.partyInTheDungeon.chanceToSucceed) {
+        if (roll <= dungeon.raidingParty.chanceToSucceed) {
             // success, transfer ETH to party owner and send back his/her tokens and remove dungeon
-            claimableRewards[dungeon.partyInTheDungeon.owner].push(
+            claimableRewards[dungeon.raidingParty.owner].push(
                 DungeonReward({
-                    tokenIds: dungeon.partyInTheDungeon.tokenIds,
+                    tokenIds: dungeon.raidingParty.tokenIds,
                     treasure: dungeon.treasure
                 })
             );
@@ -172,24 +171,24 @@ contract DungeonManager is VRFConsumerBase {
             // TODO: Are values still good after the delete ?
             emit DungeonRaidSuccess(
                 dungeon.creator,
-                dungeon.partyInTheDungeon.owner,
-                dungeon.partyInTheDungeon.tokenIds,
+                dungeon.raidingParty.owner,
+                dungeon.raidingParty.tokenIds,
                 roll
             );
         } else {
             claimableRewards[dungeon.creator].push(
                 DungeonReward({
-                    tokenIds: dungeon.partyInTheDungeon.tokenIds,
+                    tokenIds: dungeon.raidingParty.tokenIds,
                     treasure: 0 // treasure stays in the dungeon
                 })
             );
-            delete dungeon.partyInTheDungeon;
+            delete dungeon.raidingParty;
 
             // TODO: Are values still good after the delete ?
             emit DungeonRaidFailure(
                 dungeon.creator,
-                dungeon.partyInTheDungeon.owner,
-                dungeon.partyInTheDungeon.tokenIds,
+                dungeon.raidingParty.owner,
+                dungeon.raidingParty.tokenIds,
                 roll
             );
         }
