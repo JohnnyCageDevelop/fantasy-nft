@@ -122,7 +122,7 @@ library FantasyUtils {
         view
         returns (bool)
     {
-        return dungeon.raidingParty.owner != address(0);
+        return dungeon.adventuringParty.owner != address(0);
     }
 
     function remove(DungeonReward[] storage rewards, uint256 index) external {

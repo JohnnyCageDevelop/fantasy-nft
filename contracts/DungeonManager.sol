@@ -67,7 +67,7 @@ contract DungeonManager is VRFConsumerBase {
         dungeons[msg.sender] = Dungeon({
             creator: msg.sender,
             treasure: msg.value,
-            raidingParty: getEmptyAdventuringParty()
+            adventuringParty: getEmptyAdventuringParty()
         });
 
         emit DungeonCreated(msg.sender, msg.value);
@@ -130,7 +130,7 @@ contract DungeonManager is VRFConsumerBase {
         );
         require(chanceToSucceed > 0, "your party has no chance to succeed");
 
-        dungeon.raidingParty = AdventuringParty({
+        dungeon.adventuringParty = AdventuringParty({
             owner: msg.sender,
             tokenIds: tokenIds,
             chanceToSucceed: chanceToSucceed
@@ -157,11 +157,11 @@ contract DungeonManager is VRFConsumerBase {
         );
 
         uint256 roll = (randomness % 100) + 1;
-        if (roll <= dungeon.raidingParty.chanceToSucceed) {
+        if (roll <= dungeon.adventuringParty.chanceToSucceed) {
             // success, transfer ETH to party owner and send back his/her tokens and remove dungeon
-            claimableRewards[dungeon.raidingParty.owner].push(
+            claimableRewards[dungeon.adventuringParty.owner].push(
                 DungeonReward({
-                    tokenIds: dungeon.raidingParty.tokenIds,
+                    tokenIds: dungeon.adventuringParty.tokenIds,
                     treasure: dungeon.treasure
                 })
             );
@@ -172,24 +172,24 @@ contract DungeonManager is VRFConsumerBase {
             // TODO: Are values still good after the delete ?
             emit DungeonRaidSuccess(
                 dungeon.creator,
-                dungeon.raidingParty.owner,
-                dungeon.raidingParty.tokenIds,
+                dungeon.adventuringParty.owner,
+                dungeon.adventuringParty.tokenIds,
                 roll
             );
         } else {
             claimableRewards[dungeon.creator].push(
                 DungeonReward({
-                    tokenIds: dungeon.raidingParty.tokenIds,
+                    tokenIds: dungeon.adventuringParty.tokenIds,
                     treasure: 0 // treasure stays in the dungeon
                 })
             );
-            delete dungeon.raidingParty;
+            delete dungeon.adventuringParty;
 
             // TODO: Are values still good after the delete ?
             emit DungeonRaidFailure(
                 dungeon.creator,
-                dungeon.raidingParty.owner,
-                dungeon.raidingParty.tokenIds,
+                dungeon.adventuringParty.owner,
+                dungeon.adventuringParty.tokenIds,
                 roll
             );
         }
