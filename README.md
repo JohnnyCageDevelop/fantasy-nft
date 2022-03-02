@@ -17,3 +17,7 @@ Character class module ?
 13. Use Address lib from open zeppelin for eth transfer
 14. Check Open Zeppelin docs for anything that we can reuse
 15. CI/CD before deployment that runs all tests
+16. Once with cahinlink vrf v2 and 0.8 and if needed then, somethign to automatically refill the subscription ? Is there a generic solution for this ?
+My idea is a system that automtically uses the eth fees or a possible own customt token to pay for the LINK, that way that is abstracted away from users
+and the system can be made to always be able to provide the necessary LINk. For example, adjusting the fee cost based on LINK price. This system could be its
+own project that can be used by other projects...
