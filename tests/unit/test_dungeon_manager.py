@@ -139,7 +139,17 @@ def test_start_dungeon_raid_with_tokens_with_chance_to_succeed():
     assert tx.events["DungeonRaidStarted"]["dungeonCreator"] == dungeon_creator.address
     assert tx.events["DungeonRaidStarted"]["partyOwner"] == party_owner.address
     assert tx.events["DungeonRaidStarted"]["tokenIds"] == token_ids
+    dungeon = dm.dungeons(dungeon_creator.address)
+    party = dungeon[2]
+    print(f"party: {party}")
+    assert party[0] == party_owner.address
+    assert party[1] == token_ids
+    assert party[2] == dm.getAventurersChanceToSucceed(token_ids, treasure)
+    for token_id in token_ids:
+        assert fantasy.ownerOf(token_id) == dm.address
 
+def test_start_dungoen_raid_with_tokens_with_chance_to_succeed_when_dungeon_already_being_raided():
+    pass # TODO
 
 # TODO: test if can send nfts to your own dungeon ? Do we allow it ? Or not ?
 

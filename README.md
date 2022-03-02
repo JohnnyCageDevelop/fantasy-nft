@@ -16,3 +16,4 @@ Character class module ?
 12. Cleanup code
 13. Use Address lib from open zeppelin for eth transfer
 14. Check Open Zeppelin docs for anything that we can reuse
+15. CI/CD before deployment that runs all tests
