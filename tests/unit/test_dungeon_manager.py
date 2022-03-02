@@ -190,8 +190,6 @@ def test_start_dungoen_raid_with_tokens_with_chance_to_succeed_when_dungeon_alre
                             "from": second_party_owner})
 
 # TODO test with high level tokens, to check that chance does nto exceed amx chance
-
-
 @pytest.mark.parametrize("treasure_in_wei", [0.1, 1, 52, 100])
 @pytest.mark.parametrize("tokens_count", [1, 2])
 def test_get_adventurers_chance_to_succeed(treasure_in_wei, tokens_count):
@@ -211,18 +209,7 @@ def test_get_adventurers_chance_to_succeed(treasure_in_wei, tokens_count):
     chance_without_treasure = base_chance + tokens_count
     expected = chance_without_treasure - \
         treasure if treasure < chance_without_treasure else 0
-    sanity_check(fantasy=fantasy, tokenIds=token_ids)
     assert chance == expected
-
-
-def sanity_check(fantasy, tokenIds):
-    totalLevels = 0
-    for i in range(len(tokenIds)):
-        (_, _, _, _, level, _) = fantasy.getCharacterOverview(
-            tokenIds[i]
-        )
-        totalLevels += level
-    print(f"total levels: {totalLevels}")
 
 # TODO: test if can send nfts to your own dungeon ? Do we allow it ? Or not ?
 
