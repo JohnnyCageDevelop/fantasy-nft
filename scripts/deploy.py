@@ -39,7 +39,7 @@ def deploy_dungeon_manager(fantasy_address):
     link = get_contract("link_token")
     # TODO: Same keyHash for different contracts ?
     key_hash = config["networks"][network.show_active()]["keyHash"]
-    return DungeonManager.deploy(
+    dm = DungeonManager.deploy(
         fantasy_address,
         chainlink_fee,
         vrf_coordinator.address,
@@ -47,6 +47,9 @@ def deploy_dungeon_manager(fantasy_address):
         key_hash,
         {"from": account},
         publish_source=config["networks"][network.show_active()].get("verify"))
+    fund_with_link(contract_address=dm.address, account=account.address)
+    return dm
+    
 
 def callback_with_randomness(fantasy, token_id: int, randomness: int):
     account = get_account()
