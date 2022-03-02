@@ -168,7 +168,7 @@ def test_start_dungoen_raid_with_tokens_with_chance_to_succeed_when_dungeon_alre
     with pytest.raises(exceptions.VirtualMachineError):
         dm.startDungeonRaid(dungeon_creator.address, [1], {"from": second_party_owner})
 
-# TODO: test with multiple tokens
+# TODO: test with multiple tokens (check pytest doc for testing with multiple values)
 # TODO: test if can send nfts to your own dungeon ? Do we allow it ? Or not ?
 
 def assert_adventuring_party_is_empty(party):
