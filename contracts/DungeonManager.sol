@@ -4,12 +4,13 @@ pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
 import "@chainlink/contracts/src/v0.6/VRFConsumerBase.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "./Fantasy.sol";
 import "./Types.sol";
 import "./FantasyUtils.sol";
 
 // TODO: safeguard mechanism so that if VRF coord doesnt respond after x time (e.g 1 day), everyone can get their tokens and eth back
-contract DungeonManager is VRFConsumerBase {
+contract DungeonManager is VRFConsumerBase, IERC721Receiver {
     using FantasyUtils for Dungeon;
     using FantasyUtils for DungeonReward[];
     using FantasyUtils for int256;
@@ -116,6 +117,10 @@ contract DungeonManager is VRFConsumerBase {
         require(
             fantasy.isApprovedForAll(msg.sender, address(this)),
             "approval needed"
+        );
+        require(
+            tokenIds.length > 0,
+            "At least 1 token needs to be sent to the dungeon"
         );
         Dungeon storage dungeon = dungeons[dungeonCreator];
         require(
@@ -236,5 +241,20 @@ contract DungeonManager is VRFConsumerBase {
             successChance <= maxSuccessChancePerc
                 ? successChance
                 : maxSuccessChancePerc;
+    }
+
+    // TODO 0.8: inherit from ERC721Holder instead
+    /**
+     * @dev See {IERC721Receiver-onERC721Received}.
+     *
+     * Always returns `IERC721Receiver.onERC721Received.selector`.
+     */
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes memory
+    ) public virtual override returns (bytes4) {
+        return this.onERC721Received.selector;
     }
 }

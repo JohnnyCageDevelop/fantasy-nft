@@ -14,3 +14,5 @@ Character class module ?
 10. NFT^s for character equipment ? Maybe this can be taken away when failing ana devtnrue, or a random piece of equipment ? Also, characters gain exp based on the difficulty of the adventure
 11. Make sure math is safe (SafeMath if necessary, from 0.8 I believe no longer needed)
 12. Cleanup code
+13. Use Address lib from open zeppelin for eth transfer
+14. Check Open Zeppelin docs for anything that we can reuse
