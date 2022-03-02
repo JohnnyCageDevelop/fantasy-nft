@@ -23,8 +23,8 @@ contract DungeonManager is VRFConsumerBase, IERC721Receiver {
     uint256 chainlinkFee;
     bytes32 keyHash;
 
-    uint256 constant maxSuccessChancePerc = 99;
-    int256 constant baseSuccessChancePerc = 50;
+    uint256 constant public maxSuccessChancePerc = 99;
+    int256 constant public baseSuccessChancePerc = 50;
 
     event DungeonCreated(address indexed creator, uint256 treasure);
     event DungeonRetired(address indexed creator, uint256 treasure);
@@ -225,7 +225,7 @@ contract DungeonManager is VRFConsumerBase, IERC721Receiver {
         // TODO: Take stats into account ?
         int256 totalLevels = 0;
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            // TODO use smaller value to ensure that it cannot have overflow or account for it somehow
+            // TODO use smaller bounded value for levels to ensure that it cannot have overflow or account for it somehow
             (, , , , uint256 level, ) = fantasy.getCharacterOverview(
                 tokenIds[i]
             );

@@ -85,6 +85,7 @@ def test_retire_dungeon_when_dungeon_active():
 
     assert_dungeon_doesnt_exists(dm.dungeons(account.address))
 
+
 def test_start_dungeon_raid_without_tokens():
     if network.show_active() not in LOCAL_BLOCKAIN_ENVIRONMENTS:
         pytest.skip()
@@ -98,6 +99,7 @@ def test_start_dungeon_raid_without_tokens():
 
     with pytest.raises(exceptions.VirtualMachineError):
         dm.startDungeonRaid(dungeon_creator.address, [], {"from": party_owner})
+
 
 @pytest.mark.parametrize("tokens_count", [1, 2])
 def test_start_dungeon_raid_with_tokens_with_no_chance_to_succeed(tokens_count):
@@ -117,7 +119,9 @@ def test_start_dungeon_raid_with_tokens_with_no_chance_to_succeed(tokens_count):
     callback_with_randomness(fantasy=fantasy, token_id=0, randomness=2222)
 
     with pytest.raises(exceptions.VirtualMachineError):
-        dm.startDungeonRaid(dungeon_creator.address, [0], {"from": party_owner})
+        dm.startDungeonRaid(dungeon_creator.address, [
+                            0], {"from": party_owner})
+
 
 @pytest.mark.parametrize("tokens_count", [1, 2, 10])
 def test_start_dungeon_raid_with_tokens_with_chance_to_succeed(tokens_count):
@@ -132,11 +136,14 @@ def test_start_dungeon_raid_with_tokens_with_chance_to_succeed(tokens_count):
     fantasy.setApprovalForAll(dm.address, True, {"from": party_owner})
     token_ids = [i for i in range(tokens_count)]
     for token_id in range(tokens_count):
-        tx = fantasy.createCharacter({"from": party_owner, "value": ARTIST_FEE})
+        tx = fantasy.createCharacter(
+            {"from": party_owner, "value": ARTIST_FEE})
         tx.wait(1)
-        callback_with_randomness(fantasy=fantasy, token_id=token_id, randomness=token_id)
+        callback_with_randomness(
+            fantasy=fantasy, token_id=token_id, randomness=token_id)
 
-    tx = dm.startDungeonRaid(dungeon_creator.address, token_ids, {"from": party_owner})
+    tx = dm.startDungeonRaid(dungeon_creator.address,
+                             token_ids, {"from": party_owner})
 
     assert tx.events["DungeonRaidStarted"]["dungeonCreator"] == dungeon_creator.address
     assert tx.events["DungeonRaidStarted"]["partyOwner"] == party_owner.address
@@ -149,6 +156,7 @@ def test_start_dungeon_raid_with_tokens_with_chance_to_succeed(tokens_count):
     assert party[2] == dm.getAventurersChanceToSucceed(token_ids, treasure)
     for token_id in token_ids:
         assert fantasy.ownerOf(token_id) == dm.address
+
 
 @pytest.mark.parametrize("first_party_tokens_count", [1, 2])
 @pytest.mark.parametrize("second_party_tokens_count", [1, 2])
@@ -163,26 +171,67 @@ def test_start_dungoen_raid_with_tokens_with_chance_to_succeed_when_dungeon_alre
     treasure = Web3.toWei(1, "ether")
     dm.createDungeon({"from": dungeon_creator, "value": treasure})
     for i in range(first_party_tokens_count):
-        tx = fantasy.createCharacter({"from": party_owner, "value": ARTIST_FEE})
+        tx = fantasy.createCharacter(
+            {"from": party_owner, "value": ARTIST_FEE})
         tx.wait(1)
         callback_with_randomness(fantasy=fantasy, token_id=i, randomness=i)
     for i in range(second_party_tokens_count):
-        tx = fantasy.createCharacter({"from": second_party_owner, "value": ARTIST_FEE})
+        tx = fantasy.createCharacter(
+            {"from": second_party_owner, "value": ARTIST_FEE})
         tx.wait(1)
-        callback_with_randomness(fantasy=fantasy, token_id=i+second_party_tokens_count, randomness=i)
+        callback_with_randomness(
+            fantasy=fantasy, token_id=i+second_party_tokens_count, randomness=i)
     fantasy.setApprovalForAll(dm.address, True, {"from": party_owner})
     fantasy.setApprovalForAll(dm.address, True, {"from": second_party_owner})
 
     dm.startDungeonRaid(dungeon_creator.address, [0], {"from": party_owner})
     with pytest.raises(exceptions.VirtualMachineError):
-        dm.startDungeonRaid(dungeon_creator.address, [1], {"from": second_party_owner})
+        dm.startDungeonRaid(dungeon_creator.address, [1], {
+                            "from": second_party_owner})
+
+# TODO test with high level tokens, to check that chance does nto exceed amx chance
+
+
+@pytest.mark.parametrize("treasure_in_wei", [0.1, 1, 52, 100])
+@pytest.mark.parametrize("tokens_count", [1, 2])
+def test_get_adventurers_chance_to_succeed(treasure_in_wei, tokens_count):
+    treasure = Web3.fromWei(treasure_in_wei, "ether")
+    fantasy = deploy_fantasy()
+    dm = deploy_dungeon_manager(fantasy_address=fantasy.address)
+    party_owner = get_account(index=0)
+    token_ids = [i for i in range(tokens_count)]
+    for token_id in range(tokens_count):
+        tx = fantasy.createCharacter(
+            {"from": party_owner, "value": ARTIST_FEE})
+        tx.wait(1)
+        callback_with_randomness(
+            fantasy=fantasy, token_id=token_id, randomness=token_id)
+    chance = dm.getAventurersChanceToSucceed(token_ids, treasure)
+    base_chance = dm.baseSuccessChancePerc()
+    chance_without_treasure = base_chance + tokens_count
+    expected = chance_without_treasure - \
+        treasure if treasure < chance_without_treasure else 0
+    sanity_check(fantasy=fantasy, tokenIds=token_ids)
+    assert chance == expected
+
+
+def sanity_check(fantasy, tokenIds):
+    totalLevels = 0
+    for i in range(len(tokenIds)):
+        (_, _, _, _, level, _) = fantasy.getCharacterOverview(
+            tokenIds[i]
+        )
+        totalLevels += level
+    print(f"total levels: {totalLevels}")
 
 # TODO: test if can send nfts to your own dungeon ? Do we allow it ? Or not ?
+
 
 def assert_adventuring_party_is_empty(party):
     assert party[0] == ZERO_ADDRESS
     assert len(party[1]) == 0
     assert party[2] == 0
+
 
 def assert_dungeon_doesnt_exists(dungeon):
     assert dungeon[0] == ZERO_ADDRESS
