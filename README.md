@@ -4,8 +4,8 @@ Character class module ?
 
 1. Finish Todos in DungeonManager.sol
 2. Finish unit tests
-3. Allow people to change race modules based on votes (DAO). built in solution from open zeppelin for DAO race module changes ?
-4. Upgrade to 0.8 (esp for built-in SafeMath and new VRF sub model!!!)
+3. Upgrade to 0.8 (esp for built-in SafeMath and new VRF sub model!!!)
+4. Allow people to change race modules based on votes (DAO). built in solution from open zeppelin for DAO race module changes ?
 5. Fuzzy testing
 6. Make sure math is safe (SafeMath if necessary, from 0.8 I believe no longer needed)
 7.  Use Address lib from open zeppelin for eth transfer
