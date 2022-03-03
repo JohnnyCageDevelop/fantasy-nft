@@ -7,6 +7,8 @@ ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 
 def get_account(index=None, id=None):
+    for i in range(len(accounts)):
+        print(f"Account {i}: {accounts[i].balance()}")
     if (index):
         return accounts[index]
     if (id):

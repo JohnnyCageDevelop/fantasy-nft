@@ -23,11 +23,12 @@ def test_collectible_minted():
 
     tx = fantasy.createCharacter({"from": account, "value": ARTIST_FEE})
     tx.wait(1)
-    callback_with_randomness(fantasy=fantasy, token_id=0, randomness=2222)
+    callback_with_randomness(contract_address=fantasy.address,
+                             request_id=fantasy.requestIdByTokenId(0), randomness=2222)
     tx = fantasy.createCharacter({"from": second_account, "value": ARTIST_FEE})
     tx.wait(1)
-    callback_with_randomness(fantasy=fantasy, token_id=1,
-                             randomness=92136781236172380810232078612386123876312781)
+    callback_with_randomness(contract_address=fantasy.address, request_id=fantasy.requestIdByTokenId(
+        1), randomness=92136781236172380810232078612386123876312781)
 
     assert fantasy.ownerOf(0) == account.address
     character = get_character(dnd_contract=fantasy, token_id=0)
@@ -115,10 +116,13 @@ def test_update_module():
     account = get_account()
     human_module = HumanModule[-1]
     # sanity checks
-    assert fantasy.getRaceModuleAddress(human_module.getRaceName()) == human_module.address
+    assert fantasy.getRaceModuleAddress(
+        human_module.getRaceName()) == human_module.address
 
     new_human_module = MockHumanModule.deploy({"from": account})
     fantasy.updateRaceModule(new_human_module)
 
-    assert fantasy.getRaceModuleAddress(human_module.getRaceName()) == new_human_module.address
-    assert fantasy.getRaceModuleAddress(new_human_module.getRaceName()) == new_human_module.address
+    assert fantasy.getRaceModuleAddress(
+        human_module.getRaceName()) == new_human_module.address
+    assert fantasy.getRaceModuleAddress(
+        new_human_module.getRaceName()) == new_human_module.address

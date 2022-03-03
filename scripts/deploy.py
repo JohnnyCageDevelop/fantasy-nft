@@ -51,13 +51,12 @@ def deploy_dungeon_manager(fantasy_address):
     return dm
     
 
-def callback_with_randomness(fantasy, token_id: int, randomness: int):
+def callback_with_randomness(contract_address, request_id, randomness: int):
     account = get_account()
     vrf_coordinator = get_contract("vrf_coordinator")
     if network.show_active() in LOCAL_BLOCKAIN_ENVIRONMENTS:
-        request_id = fantasy.requestIdByTokenId(token_id)
         tx = vrf_coordinator.callBackWithRandomness(
-            request_id, randomness, fantasy.address, {"from": account.address})
+            request_id, randomness, contract_address, {"from": account.address})
         tx.wait(1)
     else:
         raise Exception(
@@ -66,8 +65,7 @@ def callback_with_randomness(fantasy, token_id: int, randomness: int):
 
 def wait_for_randomness_callback(fantasy):
     if network.show_active() in LOCAL_BLOCKAIN_ENVIRONMENTS:
-        callback_with_randomness(
-            fantasy=fantasy, token_id=0, randomness=378128313)
+        callback_with_randomness(contract_address=fantasy.address, request_id=fantasy.requestIdByTokenId(0), randomness=378128313)
     else:
         time.sleep(60)
 
