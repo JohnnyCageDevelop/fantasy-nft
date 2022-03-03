@@ -58,6 +58,7 @@ def callback_with_randomness(contract_address, request_id, randomness: int):
         tx = vrf_coordinator.callBackWithRandomness(
             request_id, randomness, contract_address, {"from": account.address})
         tx.wait(1)
+        return tx
     else:
         raise Exception(
             f"Can only be called in local blockchains! Active network: {network.show_active()}")

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// An example of a consumer contract that relies on a subscription for funding.
+
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
@@ -17,7 +17,7 @@ contract DungeonManager is VRFConsumerBase, IERC721Receiver {
 
     mapping(address => Dungeon) public dungeons;
     mapping(bytes32 => Dungeon) requestIdToDungeon;
-    mapping(address => DungeonReward[]) claimableRewards;
+    mapping(address => DungeonReward[]) public claimableRewards;
 
     Fantasy fantasy;
     uint256 chainlinkFee;
@@ -33,19 +33,13 @@ contract DungeonManager is VRFConsumerBase, IERC721Receiver {
         address indexed partyOwner,
         uint256[] tokenIds
     );
-    event DungeonRaidSuccess(
+    event DungeonRaidOutcome(
         address indexed dungeonCreator,
         address indexed partyOwner,
         uint256[] tokenIds,
-        uint256 roll
+        uint256 roll,
+        bool success
     );
-    event DungeonRaidFailure(
-        address indexed dungeonCreator,
-        address indexed partyOwner,
-        uint256[] tokenIds,
-        uint256 roll
-    );
-
     constructor(
         address _fantasy,
         uint256 _chainlinkFee,
@@ -68,7 +62,8 @@ contract DungeonManager is VRFConsumerBase, IERC721Receiver {
         dungeons[msg.sender] = Dungeon({
             creator: msg.sender,
             treasure: msg.value,
-            adventuringParty: getEmptyAdventuringParty()
+            adventuringParty: getEmptyAdventuringParty(),
+            requestId: 0
         });
 
         emit DungeonCreated(msg.sender, msg.value);
@@ -145,6 +140,7 @@ contract DungeonManager is VRFConsumerBase, IERC721Receiver {
             fantasy.safeTransferFrom(msg.sender, address(this), tokenIds[i]);
         }
         bytes32 requestId = requestRandomness(keyHash, chainlinkFee);
+        dungeon.requestId = requestId;
         requestIdToDungeon[requestId] = dungeon;
 
         emit DungeonRaidStarted(dungeonCreator, msg.sender, tokenIds);
@@ -160,6 +156,8 @@ contract DungeonManager is VRFConsumerBase, IERC721Receiver {
             dungeon.isBeingRaided(),
             "dungeon does not have a party inside"
         );
+        
+        delete dungeon.requestId;
 
         uint256 roll = (randomness % 100) + 1;
         if (roll <= dungeon.adventuringParty.chanceToSucceed) {
@@ -170,17 +168,16 @@ contract DungeonManager is VRFConsumerBase, IERC721Receiver {
                     treasure: dungeon.treasure
                 })
             );
-            // TODO: increase tokens exp based on how their chance of success
-            delete dungeons[dungeon.creator];
-            delete requestIdToDungeon[requestId];
 
-            // TODO: Are values still good after the delete ?
-            emit DungeonRaidSuccess(
+            emit DungeonRaidOutcome(
                 dungeon.creator,
                 dungeon.adventuringParty.owner,
                 dungeon.adventuringParty.tokenIds,
-                roll
+                roll,
+                true
             );
+            delete dungeons[dungeon.creator];
+            delete requestIdToDungeon[requestId];
         } else {
             claimableRewards[dungeon.creator].push(
                 DungeonReward({
@@ -188,15 +185,15 @@ contract DungeonManager is VRFConsumerBase, IERC721Receiver {
                     treasure: 0 // treasure stays in the dungeon
                 })
             );
-            delete dungeon.adventuringParty;
 
-            // TODO: Are values still good after the delete ?
-            emit DungeonRaidFailure(
+            emit DungeonRaidOutcome(
                 dungeon.creator,
                 dungeon.adventuringParty.owner,
                 dungeon.adventuringParty.tokenIds,
-                roll
+                roll,
+                false
             );
+            delete dungeon.adventuringParty;
         }
     }
 

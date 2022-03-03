@@ -46,6 +46,7 @@ struct Dungeon {
     address creator;
     uint256 treasure;
     AdventuringParty adventuringParty;
+    bytes32 requestId;
 }
 
 struct AdventuringParty {

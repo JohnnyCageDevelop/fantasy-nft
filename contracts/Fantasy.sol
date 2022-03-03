@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// An example of a consumer contract that relies on a subscription for funding.
+
 pragma solidity ^0.6.0;
 
 import "@chainlink/contracts/src/v0.6/VRFConsumerBase.sol";
