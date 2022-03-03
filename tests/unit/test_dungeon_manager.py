@@ -221,7 +221,7 @@ def test_start_dungeon_raid_with_success_outcome(tokens_count):
     assert tx.events["DungeonRaidOutcome"]["roll"] == expected_roll
     assert_dungeon_doesnt_exists(dm.dungeons(dungeon_creator.address))
     reward = dm.claimableRewards(party_owner.address, 0)
-    print(reward)
+    # TODO: ABI bug, reward=treasure value. I suggest upgrading to 0.8.latest
     assert reward[0] == token_ids
     assert reward[1] == treasure
     # with pytest.raises(exceptions.VirtualMachineError):
