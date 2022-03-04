@@ -14,7 +14,7 @@ contract DwarfModule is RaceModule {
 
     function getFirstNames(Gender gender)
         internal
-        view
+        pure
         override
         returns (string[] memory)
     {
@@ -33,7 +33,7 @@ contract DwarfModule is RaceModule {
 
     function getBodyPicturesUris(Gender gender)
         internal
-        view
+        pure
         override
         returns (string[] memory)
     {
@@ -45,11 +45,12 @@ contract DwarfModule is RaceModule {
             arr[0] = "muscular_dwarf_female";
             arr[1] = "slim_dwarf_female";
         }
+        return arr;
     }
 
     function getArmorPicturesUris(Gender gender, CharacterClass characterClass)
         internal
-        view
+        pure
         override
         returns (string[] memory)
     {
@@ -71,9 +72,10 @@ contract DwarfModule is RaceModule {
                 arr[1] = "cloth_dwarf_female";
             }
         }
+        return arr;
     }
 
-    function getLastNames() internal view override returns (string[] memory) {
+    function getLastNames() internal pure override returns (string[] memory) {
         string[] memory arr = new string[](3);
         arr[0] = "Thunderhammer";
         arr[1] = "Goldhorn";

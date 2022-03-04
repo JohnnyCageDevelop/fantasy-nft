@@ -52,7 +52,7 @@ abstract contract RaceModule {
         virtual
         returns (string[] memory);
 
-    function getLastNames() internal view virtual returns (string[] memory);
+    function getLastNames() internal pure virtual returns (string[] memory);
 
     function getStrengthBonus() public pure virtual returns(uint256) {
         return 0;

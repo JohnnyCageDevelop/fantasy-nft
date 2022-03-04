@@ -49,7 +49,7 @@ contract MockHumanModule is RaceModule {
         return arr;
     }
 
-    function getLastNames() internal view override returns (string[] memory) {
+    function getLastNames() internal pure override returns (string[] memory) {
         string[] memory arr = new string[](1);
         arr[0] = "mock_last_name";
         return arr;
