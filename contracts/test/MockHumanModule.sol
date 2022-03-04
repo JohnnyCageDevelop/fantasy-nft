@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // An example of a consumer contract that relies on a subscription for funding.
-pragma solidity ^0.6.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
+
 
 import "../modules/RaceModule.sol";
 import "../Types.sol";

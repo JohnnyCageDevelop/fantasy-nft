@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
+
 
 import "../Types.sol";
 
@@ -10,7 +10,7 @@ abstract contract RaceModule {
     mapping(Gender => string[]) public bodyPicturesUris;
     mapping(CharacterClass => mapping(Gender => string[])) public armorPicturesUris;
 
-    constructor() public {
+    constructor() {
         firstNames[Gender.Male] = getFirstNames(Gender.Male);
         firstNames[Gender.Female] = getFirstNames(Gender.Female);
         lastNames = getLastNames();

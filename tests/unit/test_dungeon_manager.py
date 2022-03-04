@@ -218,7 +218,7 @@ def test_start_dungeon_raid_with_success_outcome(tokens_count):
     assert tx.events["DungeonRaidOutcome"]["dungeonCreator"] == dungeon_creator.address
     assert tx.events["DungeonRaidOutcome"]["partyOwner"] == party_owner.address
     assert tx.events["DungeonRaidOutcome"]["tokenIds"] == token_ids
-    assert tx.events["DungeonRaidOutcome"]["roll"] == expected_roll
+    assert tx.events["DungeonRaidOutcome"]["roll"] == expected_roll 
     assert_dungeon_doesnt_exists(dm.dungeons(dungeon_creator.address))
     reward = dm.claimableRewards(party_owner.address, 0)
     # TODO: ABI bug, reward=treasure value. I suggest upgrading to 0.8.latest

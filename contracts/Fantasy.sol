@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.0;
 
-import "@chainlink/contracts/src/v0.6/VRFConsumerBase.sol";
+import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Types.sol";
@@ -15,11 +16,9 @@ struct PendingCharacter {
     bool isPending;
 }
 
-contract Fantasy is VRFConsumerBase, ERC721, Ownable {
+contract Fantasy is VRFConsumerBaseV2, ERC721, Ownable {
     using FantasyUtils for RaceModuleRegistry;
     using FantasyUtils for RaceModule;
-
-    uint256 chainlinkFee;
 
     uint256 public artistFee;
     address payable public artist;
@@ -28,9 +27,13 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
     mapping(bytes32 => PendingCharacter) pendingCharacterByRequestId;
     mapping(uint256 => bytes32) public requestIdByTokenId;
     uint256 public tokenCounter;
-    bytes32 keyHash;
 
     RaceModuleRegistry raceModuleRegistry;
+
+    VRFCoordinatorV2Interface COORDINATOR;
+    bytes32 keyHash;
+    uint32 callbackGasLimit = 100000;
+    uint16 requestConfirmations = 3;
 
     event RaceModuleAdded(address indexed module, address indexed addedBy);
     event RaceModuleRemoved(address indexed module, address indexed removedBy);
@@ -43,14 +46,11 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
     constructor(
         address payable _artist,
         uint256 _artistFee,
-        uint256 _chainlinkFee,
         address _vrfCoordinator,
-        address _link,
         bytes32 _keyHash
-    ) public VRFConsumerBase(_vrfCoordinator, _link) ERC721("Fantasy", "FAY") {
+    ) VRFConsumerBaseV2(_vrfCoordinator) ERC721("Fantasy", "FAY") {
         artist = _artist;
         artistFee = _artistFee;
-        chainlinkFee = _chainlinkFee;
         keyHash = _keyHash;
     }
 
@@ -87,16 +87,17 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
         require(msg.value == artistFee, "incorrect artistFee");
         uint256 newTokenId = tokenCounter;
         tokenCounter++;
-        bytes32 requestId = requestRandomness(keyHash, chainlinkFee);
-        requestIdByTokenId[newTokenId] = requestId;
-        pendingCharacterByRequestId[requestId] = PendingCharacter({
-            tokenId: newTokenId,
-            owner: msg.sender,
-            isPending: true
-        });
-        (bool sent, ) = artist.call{value: artistFee}("");
-        require(sent, "failed to send fee to the artist");
-        emit CharacterGenerationStarted(newTokenId, msg.sender);
+        // TODO: Update to vrfv2
+        // bytes32 requestId = requestRandomness(keyHash, chainlinkFee);
+        // requestIdByTokenId[newTokenId] = requestId;
+        // pendingCharacterByRequestId[requestId] = PendingCharacter({
+        //     tokenId: newTokenId,
+        //     owner: msg.sender,
+        //     isPending: true
+        // });
+        // (bool sent, ) = artist.call{value: artistFee}("");
+        // require(sent, "failed to send fee to the artist");
+        // emit CharacterGenerationStarted(newTokenId, msg.sender);
         return newTokenId;
     }
 
@@ -151,52 +152,57 @@ contract Fantasy is VRFConsumerBase, ERC721, Ownable {
         );
     }
 
-    function fulfillRandomness(bytes32 requestId, uint256 randomness)
-        internal
-        override
+    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override
     {
-        PendingCharacter storage pendingCharacter = pendingCharacterByRequestId[
-            requestId
-        ];
-        // TODO Isnt it said by chainlink that this function must not fail ?
-        require(
-            pendingCharacter.owner != address(0),
-            "Token is not being created"
-        );
-
-        RaceModule raceModule = raceModuleRegistry.choose(randomness);
-        Gender gender = Gender(randomness % 2);
-
-        Stats memory stats = Stats({
-            strength: ((randomness / 2) % 16) +
-                3 +
-                raceModule.getStrengthBonus(),
-            endurance: ((randomness / 3) % 16) +
-                3 +
-                raceModule.getEnduranceBonus(),
-            dexterity: ((randomness / 4) % 16) +
-                3 +
-                raceModule.getDexterityBonus(),
-            intellect: ((randomness / 5) % 16) +
-                3 +
-                raceModule.getIntellectBonus(),
-            mind: ((randomness / 6) % 16) + 3 + raceModule.getMindBonus()
-        });
-
-        Character memory character = Character({
-            firstName: raceModule.chooseFirstName(gender, randomness),
-            lastName: raceModule.chooseLastName(randomness / 3),
-            race: raceModule.getRaceName(),
-            level: 1,
-            stats: stats,
-            characterClass: CharacterClass((randomness / 4) % 2),
-            gender: gender
-        });
-
-        characters[pendingCharacter.tokenId] = character;
-        _safeMint(pendingCharacter.owner, pendingCharacter.tokenId);
-        delete pendingCharacterByRequestId[requestId];
+        // TODO: See below
     }
+
+    // function fulfillRandomness(bytes32 requestId, uint256 randomness)
+    //     internal
+    //     override
+    // {
+    //     PendingCharacter storage pendingCharacter = pendingCharacterByRequestId[
+    //         requestId
+    //     ];
+    //     // TODO Isnt it said by chainlink that this function must not fail ?
+    //     require(
+    //         pendingCharacter.owner != address(0),
+    //         "Token is not being created"
+    //     );
+
+    //     RaceModule raceModule = raceModuleRegistry.choose(randomness);
+    //     Gender gender = Gender(randomness % 2);
+
+    //     Stats memory stats = Stats({
+    //         strength: ((randomness / 2) % 16) +
+    //             3 +
+    //             raceModule.getStrengthBonus(),
+    //         endurance: ((randomness / 3) % 16) +
+    //             3 +
+    //             raceModule.getEnduranceBonus(),
+    //         dexterity: ((randomness / 4) % 16) +
+    //             3 +
+    //             raceModule.getDexterityBonus(),
+    //         intellect: ((randomness / 5) % 16) +
+    //             3 +
+    //             raceModule.getIntellectBonus(),
+    //         mind: ((randomness / 6) % 16) + 3 + raceModule.getMindBonus()
+    //     });
+
+    //     Character memory character = Character({
+    //         firstName: raceModule.chooseFirstName(gender, randomness),
+    //         lastName: raceModule.chooseLastName(randomness / 3),
+    //         race: raceModule.getRaceName(),
+    //         level: 1,
+    //         stats: stats,
+    //         characterClass: CharacterClass((randomness / 4) % 2),
+    //         gender: gender
+    //     });
+
+    //     characters[pendingCharacter.tokenId] = character;
+    //     _safeMint(pendingCharacter.owner, pendingCharacter.tokenId);
+    //     delete pendingCharacterByRequestId[requestId];
+    // }
 
     function getPicture(
         string memory race,

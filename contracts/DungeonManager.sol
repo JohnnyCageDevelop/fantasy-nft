@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.6.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
 
-import "@chainlink/contracts/src/v0.6/VRFConsumerBase.sol";
+
+import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "./Fantasy.sol";
 import "./Types.sol";
 import "./FantasyUtils.sol";
 
 // TODO: safeguard mechanism so that if VRF coord doesnt respond after x time (e.g 1 day), everyone can get their tokens and eth back
-contract DungeonManager is VRFConsumerBase, IERC721Receiver {
+contract DungeonManager is VRFConsumerBaseV2, IERC721Receiver {
     using FantasyUtils for Dungeon;
     using FantasyUtils for DungeonReward[];
     using FantasyUtils for int256;
@@ -20,8 +21,11 @@ contract DungeonManager is VRFConsumerBase, IERC721Receiver {
     mapping(address => DungeonReward[]) public claimableRewards;
 
     Fantasy fantasy;
-    uint256 chainlinkFee;
+
+    VRFCoordinatorV2Interface COORDINATOR;
     bytes32 keyHash;
+    uint32 callbackGasLimit = 100000;
+    uint16 requestConfirmations = 3;
 
     uint256 constant public maxSuccessChancePerc = 99;
     int256 constant public baseSuccessChancePerc = 50;
@@ -42,13 +46,10 @@ contract DungeonManager is VRFConsumerBase, IERC721Receiver {
     );
     constructor(
         address _fantasy,
-        uint256 _chainlinkFee,
         address _vrfCoordinator,
-        address _link,
         bytes32 _keyHash
-    ) public VRFConsumerBase(_vrfCoordinator, _link) {
+    ) VRFConsumerBaseV2(_vrfCoordinator) {
         fantasy = Fantasy(_fantasy);
-        chainlinkFee = _chainlinkFee;
         keyHash = _keyHash;
     }
 
@@ -139,63 +140,68 @@ contract DungeonManager is VRFConsumerBase, IERC721Receiver {
         for (uint256 i = 0; i < tokenIds.length; i++) {
             fantasy.safeTransferFrom(msg.sender, address(this), tokenIds[i]);
         }
-        bytes32 requestId = requestRandomness(keyHash, chainlinkFee);
-        dungeon.requestId = requestId;
-        requestIdToDungeon[requestId] = dungeon;
+        // TODO: Update to vrfv2
+        // bytes32 requestId = requestRandomness(keyHash, chainlinkFee);
+        // dungeon.requestId = requestId;
+        // requestIdToDungeon[requestId] = dungeon;
 
         emit DungeonRaidStarted(dungeonCreator, msg.sender, tokenIds);
     }
 
-    function fulfillRandomness(bytes32 requestId, uint256 randomness)
-        internal
-        override
-    {
-        Dungeon storage dungeon = requestIdToDungeon[requestId];
-        // TODO Isnt it said by chainlink that this function must not fail ?
-        require(
-            dungeon.isBeingRaided(),
-            "dungeon does not have a party inside"
-        );
-        
-        delete dungeon.requestId;
-
-        uint256 roll = (randomness % 100) + 1;
-        if (roll <= dungeon.adventuringParty.chanceToSucceed) {
-            // success, transfer ETH to party owner and send back his/her tokens and remove dungeon
-            claimableRewards[dungeon.adventuringParty.owner].push(
-                DungeonReward({
-                    tokenIds: dungeon.adventuringParty.tokenIds,
-                    treasure: dungeon.treasure
-                })
-            );
-
-            emit DungeonRaidOutcome(
-                dungeon.creator,
-                dungeon.adventuringParty.owner,
-                dungeon.adventuringParty.tokenIds,
-                roll,
-                true
-            );
-            delete dungeons[dungeon.creator];
-            delete requestIdToDungeon[requestId];
-        } else {
-            claimableRewards[dungeon.creator].push(
-                DungeonReward({
-                    tokenIds: dungeon.adventuringParty.tokenIds,
-                    treasure: 0 // treasure stays in the dungeon
-                })
-            );
-
-            emit DungeonRaidOutcome(
-                dungeon.creator,
-                dungeon.adventuringParty.owner,
-                dungeon.adventuringParty.tokenIds,
-                roll,
-                false
-            );
-            delete dungeon.adventuringParty;
-        }
+    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
+        // TODO: See below
     }
+
+    // function fulfillRandomness(bytes32 requestId, uint256 randomness)
+    //     internal
+    //     override
+    // {
+    //     Dungeon storage dungeon = requestIdToDungeon[requestId];
+    //     // TODO Isnt it said by chainlink that this function must not fail ?
+    //     require(
+    //         dungeon.isBeingRaided(),
+    //         "dungeon does not have a party inside"
+    //     );
+        
+    //     delete dungeon.requestId;
+
+    //     uint256 roll = (randomness % 100) + 1;
+    //     if (roll <= dungeon.adventuringParty.chanceToSucceed) {
+    //         // success, transfer ETH to party owner and send back his/her tokens and remove dungeon
+    //         claimableRewards[dungeon.adventuringParty.owner].push(
+    //             DungeonReward({
+    //                 tokenIds: dungeon.adventuringParty.tokenIds,
+    //                 treasure: dungeon.treasure
+    //             })
+    //         );
+
+    //         emit DungeonRaidOutcome(
+    //             dungeon.creator,
+    //             dungeon.adventuringParty.owner,
+    //             dungeon.adventuringParty.tokenIds,
+    //             roll,
+    //             true
+    //         );
+    //         delete dungeons[dungeon.creator];
+    //         delete requestIdToDungeon[requestId];
+    //     } else {
+    //         claimableRewards[dungeon.creator].push(
+    //             DungeonReward({
+    //                 tokenIds: dungeon.adventuringParty.tokenIds,
+    //                 treasure: 0 // treasure stays in the dungeon
+    //             })
+    //         );
+
+    //         emit DungeonRaidOutcome(
+    //             dungeon.creator,
+    //             dungeon.adventuringParty.owner,
+    //             dungeon.adventuringParty.tokenIds,
+    //             roll,
+    //             false
+    //         );
+    //         delete dungeon.adventuringParty;
+    //     }
+    // }
 
     function withdrawReward(uint256 rewardsIndex) public {
         DungeonReward memory reward = claimableRewards[msg.sender][
