@@ -5,7 +5,7 @@ compiler:
   solc:
     version: 0.8.12
     remappings:
-      - '@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.5.0'
+      - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.5.0"
       - "@chainlink=smartcontractkit/chainlink@1.2.0"
 wallets:
   from_key: ${PRIVATE_KEY}
@@ -14,10 +14,9 @@ networks:
   development:
     chainlink_fee: 100000000000000000
     keyHash: 0x2ed0feb3e7fd2022120aa84fab1945545a9f2ffc9076fd6156fa96eaff4c1311
+    subscription_id: 1337
   rinkeby:
     keyHash: 0x2ed0feb3e7fd2022120aa84fab1945545a9f2ffc9076fd6156fa96eaff4c1311
     verify: true
-    chainlink_fee: 100000000000000000
-    vrf_coordinator: "0xb3dCcb4Cf7a26f6cf6B120Cf5A73875B7BBc655B"
-    link_token: "0x01BE23585060835E02B77ef475b0Cc51aA1e0709"
-    
+    vrf_coordinator_v2: "0x6168499c0cFfCaCD319c818142124B7A15E857ab"
+    subscription_id: 1337

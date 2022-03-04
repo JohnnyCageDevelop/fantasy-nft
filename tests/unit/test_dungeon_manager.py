@@ -1,6 +1,6 @@
-from brownie import DungeonManager, network, exceptions
-from scripts.helpful_scripts import LOCAL_BLOCKAIN_ENVIRONMENTS, ZERO_ADDRESS, ZERO_BYTES_32, Gender, get_account, get_character, CharacterClass
-from scripts.deploy import ARTIST_FEE, callback_with_randomness, deploy_dungeon_manager, deploy_fantasy
+from brownie import network, exceptions
+from scripts.helpful_scripts import LOCAL_BLOCKAIN_ENVIRONMENTS, ZERO_ADDRESS, ZERO_BYTES_32, get_account
+from scripts.deploy import ARTIST_FEE, fulfill_random_words_on_coordinator, deploy_dungeon_manager, deploy_fantasy
 import pytest
 from web3 import Web3
 
@@ -189,7 +189,7 @@ def test_get_adventurers_chance_to_succeed(treasure_in_wei, tokens_count):
         tx = fantasy.createCharacter(
             {"from": party_owner, "value": ARTIST_FEE})
         tx.wait(1)
-        callback_with_randomness(contract_address=fantasy.address, request_id=fantasy.requestIdByTokenId(token_id), randomness=token_id)
+        fulfill_random_words_on_coordinator(contract_address=fantasy.address, request_id=fantasy.requestIdByTokenId(token_id))
     chance = dm.getAventurersChanceToSucceed(token_ids, treasure)
     base_chance = dm.baseSuccessChancePerc()
     chance_without_treasure = base_chance + tokens_count
@@ -214,7 +214,7 @@ def test_start_dungeon_raid_with_success_outcome(tokens_count):
     dungeon = dm.dungeons(dungeon_creator.address)
     randomness = 1
     expected_roll = randomness + 1
-    tx = callback_with_randomness(contract_address=dm.address, request_id=dungeon[3], randomness=randomness)
+    tx = fulfill_random_words_on_coordinator(contract_address=dm.address, request_id=dungeon[3])
     assert tx.events["DungeonRaidOutcome"]["dungeonCreator"] == dungeon_creator.address
     assert tx.events["DungeonRaidOutcome"]["partyOwner"] == party_owner.address
     assert tx.events["DungeonRaidOutcome"]["tokenIds"] == token_ids
@@ -248,5 +248,5 @@ def create_tokens(fantasy, tokens_count: int, account, token_id_offset: int = 0)
         tx.wait(1)
         token_id = i + token_id_offset
         tokens_ids.append(token_id)
-        callback_with_randomness(contract_address=fantasy.address, request_id=fantasy.requestIdByTokenId(token_id), randomness=token_id)
+        fulfill_random_words_on_coordinator(contract_address=fantasy.address, request_id=fantasy.requestIdByTokenId(token_id))
     return tokens_ids

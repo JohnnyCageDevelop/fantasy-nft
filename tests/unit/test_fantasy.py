@@ -1,6 +1,6 @@
-from brownie import Fantasy, network, HumanModule, DwarfModule, exceptions, MockHumanModule
+from brownie import network, HumanModule, DwarfModule, exceptions, MockHumanModule
 from scripts.helpful_scripts import LOCAL_BLOCKAIN_ENVIRONMENTS, Gender, get_account, get_character, CharacterClass
-from scripts.deploy import ARTIST_FEE, callback_with_randomness, deploy_fantasy
+from scripts.deploy import ARTIST_FEE, fulfill_random_words_on_coordinator, deploy_fantasy
 import pytest
 
 
@@ -23,12 +23,12 @@ def test_collectible_minted():
 
     tx = fantasy.createCharacter({"from": account, "value": ARTIST_FEE})
     tx.wait(1)
-    callback_with_randomness(contract_address=fantasy.address,
-                             request_id=fantasy.requestIdByTokenId(0), randomness=2222)
+    fulfill_random_words_on_coordinator(contract_address=fantasy.address,
+                                        request_id=fantasy.requestIdByTokenId(0))
     tx = fantasy.createCharacter({"from": second_account, "value": ARTIST_FEE})
     tx.wait(1)
-    callback_with_randomness(contract_address=fantasy.address, request_id=fantasy.requestIdByTokenId(
-        1), randomness=92136781236172380810232078612386123876312781)
+    fulfill_random_words_on_coordinator(contract_address=fantasy.address, request_id=fantasy.requestIdByTokenId(
+        1))
 
     assert fantasy.ownerOf(0) == account.address
     character = get_character(dnd_contract=fantasy, token_id=0)

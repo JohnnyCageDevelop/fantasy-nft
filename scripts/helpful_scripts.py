@@ -1,6 +1,6 @@
 from enum import Enum
 import json
-from brownie import accounts, network, config, VRFCoordinatorMock, LinkToken, Contract
+from brownie import accounts, network, config, VRFCoordinatorV2Mock, Contract
 
 LOCAL_BLOCKAIN_ENVIRONMENTS = ["development", "ganache-local"]
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
@@ -18,10 +18,8 @@ def get_account(index=None, id=None):
 
 
 contract_to_mock = {
-    "vrf_coordinator": VRFCoordinatorMock,
-    "link_token": LinkToken
+    "vrf_coordinator_v2": VRFCoordinatorV2Mock,
 }
-
 
 def get_contract(contract_name):
     """
@@ -50,21 +48,7 @@ def get_contract(contract_name):
 
 def deploy_mocks():
     account = get_account()
-    link_token = LinkToken.deploy({"from": account})
-    VRFCoordinatorMock.deploy(link_token.address, {"from": account})
-
-
-def fund_with_link(
-        contract_address,
-        account=None,
-        link_token=None,
-        amount=100000000000000000):
-    account = account if account else get_account()
-    link_token = link_token if link_token else get_contract("link_token")
-    tx = link_token.transfer(contract_address, amount, {"from": account})
-    tx.wait(1)
-    print("Funded contract!")
-    return tx
+    VRFCoordinatorV2Mock.deploy(1, 1, {"from": account})
 
 
 class CharacterClass(Enum):
