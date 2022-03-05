@@ -87,7 +87,7 @@ contract Fantasy is VRFConsumerBaseV2, ERC721, Ownable {
         return address(raceModuleRegistry.get(race));
     }
 
-    function createCharacter() external payable returns (uint256 tokenId) {
+    function createCharacter() external payable {
         require(msg.value == artistFee, "incorrect artistFee");
         uint256 newTokenId = tokenCounter;
         tokenCounter++;
@@ -107,7 +107,6 @@ contract Fantasy is VRFConsumerBaseV2, ERC721, Ownable {
         (bool sent, ) = artist.call{value: artistFee}("");
         require(sent, "failed to send fee to the artist");
         emit CharacterGenerationStarted(newTokenId, msg.sender);
-        return newTokenId;
     }
 
     function isPendingCharacter(uint256 tokenId) public view returns (bool) {

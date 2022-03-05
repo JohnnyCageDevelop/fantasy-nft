@@ -1,7 +1,7 @@
 import "@nomiclabs/hardhat-waffle";
 import { Contract } from "ethers";
 import { ethers } from "hardhat";
-import { getKeyHash, getSubscriptionId } from "./utils";
+import { getArtistFee, getKeyHash, getSubscriptionId } from "./utils";
 
 //! TODO: non-local networks ??
 
@@ -30,9 +30,9 @@ async function deployFantasy({
     withModules
 }: DeployFantasyParams): Promise<Contract> {
 
+    const artistFee = getArtistFee();
     const keyHash = getKeyHash();
     const subscriptionId = getSubscriptionId();
-    const artistFee = ethers.utils.parseEther("0.0001");
 
     const Fantasy = await ethers.getContractFactory("Fantasy",
         {
@@ -94,7 +94,6 @@ export async function deployFantasyWithDependencies(withModules: boolean): Promi
         fantasyUtils
     }
 }
-
 interface DeployDungeonManagerParams {
     vrfCoordinatorV2Address: string,
     fantasyUtilsAddress: string,
