@@ -1,6 +1,7 @@
 import "@nomiclabs/hardhat-waffle";
 import { Contract } from "ethers";
 import { ethers } from "hardhat";
+import { getKeyHash, getSubscriptionId } from "./utils";
 
 //! TODO: non-local networks ??
 
@@ -29,9 +30,8 @@ async function deployFantasy({
     withModules
 }: DeployFantasyParams): Promise<Contract> {
 
-    // TOOD best practices ??
-    const keyHash = "0x2ed0feb3e7fd2022120aa84fab1945545a9f2ffc9076fd6156fa96eaff4c1311";
-    const subscriptionId = 1;
+    const keyHash = getKeyHash();
+    const subscriptionId = getSubscriptionId();
     const artistFee = ethers.utils.parseEther("0.0001");
 
     const Fantasy = await ethers.getContractFactory("Fantasy",
@@ -95,8 +95,43 @@ export async function deployFantasyWithDependencies(withModules: boolean): Promi
     }
 }
 
+interface DeployDungeonManagerParams {
+    vrfCoordinatorV2Address: string,
+    fantasyUtilsAddress: string,
+    fantasyAddress: string
+}
+
+export async function deployDungeonManager({
+    vrfCoordinatorV2Address,
+    fantasyUtilsAddress,
+    fantasyAddress
+}: DeployDungeonManagerParams): Promise<Contract> {
+    const keyHash = getKeyHash();
+    const subscriptionId = getSubscriptionId();
+    const DungeonManager = await ethers.getContractFactory("DungeonManager",
+        {
+            libraries: {
+                FantasyUtils: fantasyUtilsAddress
+            }
+        });
+    const dm = await DungeonManager.deploy(
+        fantasyAddress,
+        vrfCoordinatorV2Address,
+        keyHash,
+        subscriptionId
+    );
+    await dm.deployed();
+    console.log(`DungeonManager deployed at ${dm.address}`);
+    return dm;
+}
+
 async function main(): Promise<void> {
-    await deployFantasyWithDependencies(true);
+    const { fantasy, vrfCoordinatorV2, fantasyUtils } = await deployFantasyWithDependencies(true);
+    await deployDungeonManager({
+        fantasyAddress: fantasy.address,
+        vrfCoordinatorV2Address: vrfCoordinatorV2.address,
+        fantasyUtilsAddress: fantasyUtils.address
+    });
 }
 
 main()
