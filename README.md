@@ -2,9 +2,7 @@ TODO:
 
 
 # hardhat migration todo
-- Setup hardhat in the project with typescript
-- Fix deployment scripts (check https://ethereum.stackexchange.com/a/114051/93757 for already deployed contracts)
-- Migrate tests to js
+- Migrate tests to ts
 
 Character class module ?
 
