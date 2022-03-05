@@ -1,11 +1,9 @@
 import { ethers, waffle } from "hardhat";
 import { expect } from "chai";
-import { BigNumber } from "ethers";
 import { deployDungeonManager, deployFantasyWithDependencies } from "../scripts/deploy";
 
 // TODO: Only run unit tests in local blockchain
 describe("Fantasy", () => {
-
 
     it("Attempting to create a dungeon without sending ether should revert", async () => {
         const { fantasy, vrfCoordinatorV2, fantasyUtils } = await deployFantasyWithDependencies(true);
