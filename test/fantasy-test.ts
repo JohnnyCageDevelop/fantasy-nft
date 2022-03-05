@@ -38,7 +38,7 @@ describe("Fantasy", () => {
         const tx = await dmWithSigner.createDungeon({ value: treasure });
         const receipt = await tx.wait();
         const dungeonCreated = getEvent(receipt.events, "DungeonCreated");
-        
+
         expect(dungeonCreated.args.creator).to.equal(account.address);
         expect(dungeonCreated.args.treasure).to.equal(treasure);
     });
@@ -80,6 +80,7 @@ describe("Fantasy", () => {
         const dmBalance = await waffle.provider.getBalance(dmWithSigner.address);
         expect(dmBalance).to.equal(0);
         const accountBalance = await waffle.provider.getBalance(account.address);
+        // TODO better check by computing tx fee ?
         expect(accountBalance.gt(balanceBeforeRetiringDungeon)).to.be.true;
 
         expectDungeonDoesntExist(dm.dungeons(account.address));
