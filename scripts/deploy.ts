@@ -76,7 +76,7 @@ interface FantasyDeployResult {
     fantasyUtils: Contract
 }
 
-export async function deployFantasyWithDependencies(): Promise<FantasyDeployResult> {
+export async function deployFantasyWithDependencies(withModules: boolean): Promise<FantasyDeployResult> {
     const vrfCoordinatorV2 = await deployVrfCoordinatorV2();
     const fantasyUtils = await deployFantasyUtils();
     const artistAddress = await fantasyUtils.signer.getAddress();
@@ -84,7 +84,7 @@ export async function deployFantasyWithDependencies(): Promise<FantasyDeployResu
         vrfCoordinatorV2Address: vrfCoordinatorV2.address,
         fantasyUtilsAddress: fantasyUtils.address,
         artistAddress: artistAddress,
-        withModules: true
+        withModules
     });
     console.log(`Fantasy deployed at ${fantasy.address}`);
 
@@ -96,7 +96,7 @@ export async function deployFantasyWithDependencies(): Promise<FantasyDeployResu
 }
 
 async function main(): Promise<void> {
-    await deployFantasyWithDependencies();
+    await deployFantasyWithDependencies(true);
 }
 
 main()
