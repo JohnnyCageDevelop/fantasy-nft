@@ -4,7 +4,9 @@ import { deployDungeonManager, deployFantasyWithDependencies } from "../scripts/
 
 // TODO: Only run unit tests in local blockchain
 describe("Fantasy", () => {
-    it("Should not be able to create a dungeon without ether", async () => {
+
+
+    it("Attempting to create a dungeon without sending ether should revert", async () => {
         const { fantasy, vrfCoordinatorV2, fantasyUtils } = await deployFantasyWithDependencies(true);
         const dm = await deployDungeonManager({
             fantasyAddress: fantasy.address,
@@ -38,6 +40,20 @@ describe("Fantasy", () => {
         
         expect(dungeonCreated.args.creator).to.equal(account.address);
         expect(dungeonCreated.args.treasure).to.equal(treasure);
+    });
+
+    it("Attempting to retire an inactive dungeon", async () => {
+        const { fantasy, vrfCoordinatorV2, fantasyUtils } = await deployFantasyWithDependencies(true);
+        const dm = await deployDungeonManager({
+            fantasyAddress: fantasy.address,
+            vrfCoordinatorV2Address: vrfCoordinatorV2.address,
+            fantasyUtilsAddress: fantasyUtils.address
+        });
+        const accounts = await ethers.getSigners();
+        const account = accounts[0];
+        const dmWithSigner = dm.connect(account);
+
+        expect(dmWithSigner.retireDungeon()).to.be.revertedWith("there is no dungeon belonging to this address");
     });
 });
 
