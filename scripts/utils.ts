@@ -6,10 +6,14 @@ export function getKeyHash(): string {
     return "0x2ed0feb3e7fd2022120aa84fab1945545a9f2ffc9076fd6156fa96eaff4c1311";
 }
 
-export function getSubscriptionId(): Number {
+export function getSubscriptionId(): number {
     return 1;
 }
 
 export function getArtistFee(): BigNumber {
     return ethers.utils.parseEther("0.0001");
+}
+
+export function createSequence(length: number): number[] {
+    return Array(length).map((_, index) => index);
 }

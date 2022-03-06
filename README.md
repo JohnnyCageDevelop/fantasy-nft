@@ -3,6 +3,7 @@ TODO:
 
 # hardhat migration todo
 - Migrate tests to ts
+- Checks for reverted dont actually check for reverted txs, check docs / stack overflow and make sure it works!
 
 Character class module ?
 
