@@ -18,7 +18,7 @@ describe("Fantasy", () => {
         const account = accounts[0];
         const dmWithSigner = dm.connect(account);
 
-        expect(dmWithSigner.createDungeon({ value: 0 })).to.be.revertedWith("at least 1 WEI must be sent as treasure");
+        await expect(dmWithSigner.createDungeon({ value: 0 })).to.be.revertedWith("at least 1 WEI must be sent as treasure");
         const dungeon = await dm.dungeons(account.address);
         expectDungeonDoesntExist(dungeon);
     });
@@ -54,7 +54,7 @@ describe("Fantasy", () => {
         const account = accounts[0];
         const dmWithSigner = dm.connect(account);
 
-        expect(async () => await dmWithSigner.retireDungeon()).to.be.revertedWith("there is no dungeon belonging to this address");
+        await expect(async () => await dmWithSigner.retireDungeon()).to.be.revertedWith("there is no dungeon belonging to this address");
     });
 
     it("Retiring an active dungeon should retire it", async () => {
@@ -86,8 +86,7 @@ describe("Fantasy", () => {
         expectDungeonDoesntExist(dm.dungeons(account.address));
     });
 
-    // TODO: Fix this revert check as well as others in this file, they dont actually check correctly for reverted txs
-    it.skip("Reverts when attempting to raid a dungeon without tokens", async () => {
+    it("Reverts when attempting to raid a dungeon without tokens", async () => {
         const { fantasy, vrfCoordinatorV2, fantasyUtils } = await deployFantasyWithDependencies(true);
         const dm = await deployDungeonManager({
             fantasyAddress: fantasy.address,
@@ -104,7 +103,7 @@ describe("Fantasy", () => {
         const fantasyWithPartyOwnerSigner = fantasy.connect(partyOwner);
         await fantasyWithPartyOwnerSigner.setApprovalForAll(dm.address, true);
 
-        expect(dmWithPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, [])).to.be.revertedWith("lala");
+        await expect(dmWithPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, [])).to.be.revertedWith("At least 1 token needs to be sent to the dungeon");
     });
 
     it.skip("Reverts when attempting to raid a dungeon with no chance to succeed", async () => {
