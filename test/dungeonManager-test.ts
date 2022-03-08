@@ -1,8 +1,8 @@
-import { ethers, waffle } from "hardhat";
 import { expect } from "chai";
-import { deployDungeonManager, deployFantasyWithDependencies } from "../scripts/deploy";
-import { createSequence, getArtistFee } from "../scripts/utils";
 import { Contract } from "ethers";
+import { ethers, waffle } from "hardhat";
+import { deployDungeonManager, deployFantasyWithDependencies } from "../scripts/deploy";
+import { getArtistFee, getEvent } from "../scripts/utils";
 
 // TODO: Only run unit tests in local blockchain
 describe("Fantasy", () => {
@@ -102,16 +102,41 @@ describe("Fantasy", () => {
         const dmWithPartyOwnerSigner = dm.connect(partyOwner);
         const fantasyWithPartyOwnerSigner = fantasy.connect(partyOwner);
         await fantasyWithPartyOwnerSigner.setApprovalForAll(dm.address, true);
-
+        
         await expect(dmWithPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, [])).to.be.revertedWith("At least 1 token needs to be sent to the dungeon");
     });
+    
+    it("Reverts when attempting to raid a dungeon with no chance to succeed", async () => {
+        // TODO: Parametize for for tokens_count [1,2]
+        const tokensCount = 1;
+        const { fantasy, vrfCoordinatorV2, fantasyUtils } = await deployFantasyWithDependencies(true);
+        const dm = await deployDungeonManager({
+            fantasyAddress: fantasy.address,
+            vrfCoordinatorV2Address: vrfCoordinatorV2.address,
+            fantasyUtilsAddress: fantasyUtils.address
+        });
+        const accounts = await ethers.getSigners();
+        const dungeonCreator = accounts[0];
+        const partyOwner = accounts[1];
+        const dmWithDungeonCreatorSigner = dm.connect(dungeonCreator);
+        const treasure = ethers.utils.parseEther((50 + tokensCount).toString());
+        (await dmWithDungeonCreatorSigner.createDungeon({ value: treasure })).wait();
+        const dmWithPartyOwnerSigner = dm.connect(partyOwner);
+        const fantasyWithPartyOwnerSigner = fantasy.connect(partyOwner);
+        const tokenIds = await createTokens({
+            fantasyWithSigner: fantasyWithPartyOwnerSigner,
+            vrfCoordinatorV2WithSigner: vrfCoordinatorV2.connect(dungeonCreator),
+            tokensCount,
+            tokenIdOffset: 0
+        });
+        await fantasyWithPartyOwnerSigner.setApprovalForAll(dm.address, true);
 
-    it.skip("Reverts when attempting to raid a dungeon with no chance to succeed", async () => {
-        // TODO
+        const tx = await dmWithPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, tokenIds);
+        await tx.wait();
     });
 
     it("Emits a DungeonRaidStarted event with the correct data and registers the raiding party to the correct dungeon when starting a raid with chance to succeed", async () => {
-        // TODO: Parametize for for tokens_count [1,2,10
+        // TODO: Parametize for for tokens_count [1,2,10]
         const tokensCount = 1;
         const { fantasy, vrfCoordinatorV2, fantasyUtils } = await deployFantasyWithDependencies(true);
         const dm = await deployDungeonManager({
@@ -129,10 +154,11 @@ describe("Fantasy", () => {
         const fantasyWithPartyOwnerSigner = fantasy.connect(partyOwner);
         const tokenIds = await createTokens({
             fantasyWithSigner: fantasyWithPartyOwnerSigner,
-            vrfCoordinatorV2WithSigner: vrfCoordinatorV2.connect(dungeonCreator.address),
+            vrfCoordinatorV2WithSigner: vrfCoordinatorV2.connect(dungeonCreator),
             tokensCount,
             tokenIdOffset: 0
         });
+        await fantasyWithPartyOwnerSigner.setApprovalForAll(dm.address, true);
 
         const tx = await dmWithPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, tokenIds);
         const receipt = await tx.wait();
@@ -180,13 +206,3 @@ function expectDungeonDoesntExist(dungeon: any): void {
     expect(dungeon[2] == ethers.constants.HashZero);
 }
 
-function getEvent(events: any[], eventName: string): any | null {
-    const matches = events.filter(e => e.event == eventName);
-    if (matches.length > 1) {
-        throw new Error(`Multiple events with the name: ${eventName}`);
-    } else if (matches.length > 0) {
-        return matches[0];
-    } else {
-        return null;
-    }
-}

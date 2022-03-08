@@ -1,7 +1,7 @@
 import "@nomiclabs/hardhat-waffle";
-import { Contract } from "ethers";
+import { BigNumberish, Contract } from "ethers";
 import { ethers } from "hardhat";
-import { getArtistFee, getKeyHash, getSubscriptionId } from "./utils";
+import { createFundedSubcription, getArtistFee, getKeyHash, getSubscriptionId } from "./utils";
 
 //! TODO: non-local networks ??
 
@@ -17,6 +17,7 @@ function deployFantasyUtils(): Promise<Contract> {
 }
 
 interface DeployFantasyParams {
+    subscriptionId: BigNumberish,
     vrfCoordinatorV2Address: string,
     fantasyUtilsAddress: string,
     artistAddress: string,
@@ -24,6 +25,7 @@ interface DeployFantasyParams {
 }
 
 async function deployFantasy({
+    subscriptionId,
     vrfCoordinatorV2Address,
     fantasyUtilsAddress,
     artistAddress,
@@ -32,7 +34,6 @@ async function deployFantasy({
 
     const artistFee = getArtistFee();
     const keyHash = getKeyHash();
-    const subscriptionId = getSubscriptionId();
 
     const Fantasy = await ethers.getContractFactory("Fantasy",
         {
@@ -79,8 +80,12 @@ interface FantasyDeployResult {
 export async function deployFantasyWithDependencies(withModules: boolean): Promise<FantasyDeployResult> {
     const vrfCoordinatorV2 = await deployVrfCoordinatorV2();
     const fantasyUtils = await deployFantasyUtils();
-    const artistAddress = await fantasyUtils.signer.getAddress();
+    const accounts = await ethers.getSigners();
+    const signer = accounts[0];
+    const subscriptionId = await createFundedSubcription(vrfCoordinatorV2.connect(signer));
+    const artistAddress = await signer.getAddress();
     const fantasy = await deployFantasy({
+        subscriptionId,
         vrfCoordinatorV2Address: vrfCoordinatorV2.address,
         fantasyUtilsAddress: fantasyUtils.address,
         artistAddress: artistAddress,
