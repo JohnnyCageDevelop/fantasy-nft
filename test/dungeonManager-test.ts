@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Contract } from "ethers";
+import { BigNumberish, Contract } from "ethers";
 import { ethers, waffle } from "hardhat";
 import { deployDungeonManager, deployFantasyWithDependencies } from "../scripts/deploy";
 import { getArtistFee, getEvent } from "../scripts/utils";
@@ -126,11 +126,9 @@ describe("Fantasy", () => {
         const tokenIds = await createTokens({
             fantasyWithSigner: fantasyWithPartyOwnerSigner,
             vrfCoordinatorV2WithSigner: vrfCoordinatorV2.connect(dungeonCreator),
-            tokensCount,
-            tokenIdOffset: 0
+            tokensCount
         });
         await fantasyWithPartyOwnerSigner.setApprovalForAll(dm.address, true);
-
         const tx = await dmWithPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, tokenIds);
         await tx.wait();
     });
@@ -155,8 +153,7 @@ describe("Fantasy", () => {
         const tokenIds = await createTokens({
             fantasyWithSigner: fantasyWithPartyOwnerSigner,
             vrfCoordinatorV2WithSigner: vrfCoordinatorV2.connect(dungeonCreator),
-            tokensCount,
-            tokenIdOffset: 0
+            tokensCount
         });
         await fantasyWithPartyOwnerSigner.setApprovalForAll(dm.address, true);
 
@@ -179,25 +176,34 @@ describe("Fantasy", () => {
 interface CreateTokensParams {
     fantasyWithSigner: Contract,
     vrfCoordinatorV2WithSigner: Contract,
-    tokensCount: number,
-    tokenIdOffset: number
+    tokensCount: number
 }
 
 async function createTokens({
     fantasyWithSigner: fantasyWithSigner,
     vrfCoordinatorV2WithSigner,
-    tokensCount,
-    tokenIdOffset = 0 }: CreateTokensParams): Promise<number[]> {
+    tokensCount }: CreateTokensParams): Promise<BigNumberish[]> {
     const tokenIds = [];
     for (let i = 0; i < tokensCount; i++) {
-        const tx = await fantasyWithSigner.createCharacter({value: getArtistFee()});
-        await tx.wait();
-        const tokenId = i + tokenIdOffset;
+        const tokenId = await createCharacterAndFinishGeneration(fantasyWithSigner, vrfCoordinatorV2WithSigner);
         tokenIds.push(tokenId);
-        const requestId = await fantasyWithSigner.requestIdByTokenId(tokenId);
-        await vrfCoordinatorV2WithSigner.fulfillRandomWords(requestId, fantasyWithSigner.address);
     }
     return tokenIds;
+}
+
+async function createCharacterAndFinishGeneration(fantasyWithSigner: Contract, vrfCoordinatorV2WithSigner: Contract): Promise<BigNumberish> {
+    const tokenId = await createCharacter(fantasyWithSigner);
+    const requestId = await fantasyWithSigner.requestIdByTokenId(tokenId);
+    const tx = await vrfCoordinatorV2WithSigner.fulfillRandomWords(requestId, fantasyWithSigner.address);
+    await tx.wait();
+    return tokenId;
+}
+
+async function createCharacter(fantasyWithSigner: Contract) {
+    const tx = await fantasyWithSigner.createCharacter({ value: getArtistFee() });
+    const receipt = await tx.wait();
+    const tokenId = getEvent(receipt.events, "CharacterGenerationStarted").args.tokenId;
+    return tokenId;
 }
 
 function expectDungeonDoesntExist(dungeon: any): void {
