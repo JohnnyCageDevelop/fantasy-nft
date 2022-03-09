@@ -37,3 +37,37 @@ export function getEvent(events: any[], eventName: string): any | null {
         return null;
     }
 }
+
+export interface CreateTokensParams {
+    fantasyWithSigner: Contract,
+    vrfCoordinatorV2WithSigner: Contract,
+    tokensCount: number
+}
+
+export async function createTokens({
+    fantasyWithSigner: fantasyWithSigner,
+    vrfCoordinatorV2WithSigner,
+    tokensCount }: CreateTokensParams): Promise<BigNumberish[]> {
+    const tokenIds = [];
+    for (let i = 0; i < tokensCount; i++) {
+        const tokenId = await createCharacterAndFinishGeneration(fantasyWithSigner, vrfCoordinatorV2WithSigner);
+        tokenIds.push(tokenId);
+    }
+    return tokenIds;
+}
+
+export async function createCharacterAndFinishGeneration(fantasyWithSigner: Contract, vrfCoordinatorV2WithSigner: Contract): Promise<BigNumberish> {
+    const tokenId = await createCharacter(fantasyWithSigner);
+    const requestId = await fantasyWithSigner.requestIdByTokenId(tokenId);
+    const tx = await vrfCoordinatorV2WithSigner.fulfillRandomWords(requestId, fantasyWithSigner.address);
+    await tx.wait();
+    return tokenId;
+}
+
+export async function createCharacter(fantasyWithSigner: Contract) {
+    const tx = await fantasyWithSigner.createCharacter({ value: getArtistFee() });
+    const receipt = await tx.wait();
+    const tokenId = getEvent(receipt.events, "CharacterGenerationStarted").args.tokenId;
+    console.log("tokenId: " + tokenId);
+    return tokenId;
+}
