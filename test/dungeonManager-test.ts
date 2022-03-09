@@ -203,6 +203,7 @@ async function createCharacter(fantasyWithSigner: Contract) {
     const tx = await fantasyWithSigner.createCharacter({ value: getArtistFee() });
     const receipt = await tx.wait();
     const tokenId = getEvent(receipt.events, "CharacterGenerationStarted").args.tokenId;
+    console.log("tokenId: " + tokenId);
     return tokenId;
 }
 

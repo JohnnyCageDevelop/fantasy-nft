@@ -44,6 +44,8 @@ contract Fantasy is VRFConsumerBaseV2, ERC721, Ownable {
         address indexed startedBy
     );
 
+    error InexistentCharacter(uint256 tokenId);
+
     constructor(
         address payable _artist,
         uint256 _artistFee,
@@ -126,7 +128,9 @@ contract Fantasy is VRFConsumerBaseV2, ERC721, Ownable {
             Gender gender
         )
     {
-        require(_exists(tokenId), "Character does not exist");
+        if (!_exists(tokenId)) {
+            revert InexistentCharacter({tokenId: tokenId});
+        }
         Character memory character = characters[tokenId];
         return (
             character.firstName,

@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { BigNumber, Contract } from "ethers";
+import { BigNumber, BigNumberish, Contract } from "ethers";
 
 // TOOD best practices ??
 export function getKeyHash(): string {
@@ -10,7 +10,7 @@ export function getSubscriptionId(): number {
     return 1;
 }
 
-export function getArtistFee(): BigNumber {
+export function getArtistFee(): BigNumberish {
     return ethers.utils.parseEther("0.0001");
 }
 
