@@ -47,4 +47,4 @@ describe("Fantasy", () => {
         const transferEvent = getEvent(receipt.events, "Transfer");
         expect(transferEvent.args.tokenId).to.equal(tokenId);
     });
-});
+});     

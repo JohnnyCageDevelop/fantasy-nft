@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Types.sol";
 import "./FantasyUtils.sol";
 import "./modules/RaceModule.sol";
+import "hardhat/console.sol";
 
 struct PendingCharacter {
     uint256 tokenId;
@@ -178,13 +179,25 @@ contract Fantasy is VRFConsumerBaseV2, ERC721, Ownable {
         );
 
         RaceModule raceModule = raceModuleRegistry.choose(randomWords[0]);
-        Gender gender = Gender(randomWords[1]);
+        Gender gender = Gender(randomWords[1] % 2);
 
         Stats memory stats = Stats({
-            strength: generateStat(randomWords[2], raceModule.getStrengthBonus()),
-            endurance: generateStat(randomWords[3], raceModule.getEnduranceBonus()),
-            dexterity: generateStat(randomWords[4], raceModule.getDexterityBonus()),
-            intellect: generateStat(randomWords[5], raceModule.getIntellectBonus()),
+            strength: generateStat(
+                randomWords[2],
+                raceModule.getStrengthBonus()
+            ),
+            endurance: generateStat(
+                randomWords[3],
+                raceModule.getEnduranceBonus()
+            ),
+            dexterity: generateStat(
+                randomWords[4],
+                raceModule.getDexterityBonus()
+            ),
+            intellect: generateStat(
+                randomWords[5],
+                raceModule.getIntellectBonus()
+            ),
             mind: generateStat(randomWords[6], raceModule.getMindBonus())
         });
 
@@ -198,12 +211,18 @@ contract Fantasy is VRFConsumerBaseV2, ERC721, Ownable {
             gender: gender
         });
 
+        // TODO the two lines below (each of them) apepar to be stoing execution of the code ? Swallowed error ?
         characters[pendingCharacter.tokenId] = character;
         _safeMint(pendingCharacter.owner, pendingCharacter.tokenId);
+
         delete pendingCharacterByRequestId[requestId];
     }
 
-    function generateStat(uint256 randomness, uint256 bonus) internal pure returns(uint256) {
+    function generateStat(uint256 randomness, uint256 bonus)
+        internal
+        pure
+        returns (uint256)
+    {
         return (randomness % 16) + 3 + bonus;
     }
 
