@@ -44,8 +44,5 @@ describe("Fantasy", () => {
         expect(characterOverview[4]).to.equal(1);
         expect(characterOverview[5]).to.equal(1);
         expect(await fantasy.isPendingCharacter(0)).to.be.false;
-        console.log(receipt.events);
-        const transferEvent = getEvent(receipt.events, "Transfer");
-        expect(transferEvent.args.tokenId).to.equal(tokenId);
     });
 });     

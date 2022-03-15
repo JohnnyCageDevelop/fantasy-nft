@@ -129,8 +129,7 @@ describe("Fantasy", () => {
             tokensCount
         });
         await fantasyWithPartyOwnerSigner.setApprovalForAll(dm.address, true);
-        const tx = await dmWithPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, tokenIds);
-        await tx.wait();
+        await expect(dmWithPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, tokenIds)).to.be.revertedWith("your party has no chance to succeed");
     });
 
     it("Emits a DungeonRaidStarted event with the correct data and registers the raiding party to the correct dungeon when starting a raid with chance to succeed", async () => {
@@ -168,7 +167,7 @@ describe("Fantasy", () => {
         const party = dungeon[2];
         expect(party[0]).to.equal(partyOwner.address);
         expect(party[1]).to.deep.equal(tokenIds);
-        const chanceToSucceed = dm.getAventurersChanceToSucceed(tokenIds, treasure);
+        const chanceToSucceed = await dm.getAventurersChanceToSucceed(tokenIds, treasure);
         expect(party[1]).to.equal(chanceToSucceed); 
     });
 });
