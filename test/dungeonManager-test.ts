@@ -54,7 +54,7 @@ describe("Fantasy", () => {
         const account = accounts[0];
         const dmWithSigner = dm.connect(account);
 
-        await expect(async () => await dmWithSigner.retireDungeon()).to.be.revertedWith("there is no dungeon belonging to this address");
+        await expect(dmWithSigner.retireDungeon()).to.be.revertedWith("there is no dungeon belonging to this address");
     });
 
     it("Retiring an active dungeon should retire it", async () => {
