@@ -168,7 +168,7 @@ describe("Fantasy", () => {
         expect(party[0]).to.equal(partyOwner.address);
         expect(party[1]).to.deep.equal(tokenIds);
         const chanceToSucceed = await dm.getAventurersChanceToSucceed(tokenIds, treasure);
-        expect(party[1]).to.equal(chanceToSucceed); 
+        expect(party[2]).to.equal(chanceToSucceed); 
     });
 });
 
