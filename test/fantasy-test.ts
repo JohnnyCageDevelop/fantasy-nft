@@ -35,15 +35,16 @@ describe("Fantasy", () => {
         const tx = await vrfCoordinatorV2WithSigner.fulfillRandomWords(requestId, fantasyWithSigner.address);
         const receipt = await tx.wait();
 
-        expect(await fantasy.ownerOf(0)).to.equal(account);
+        expect(await fantasy.ownerOf(0)).to.equal(account.address);
         const characterOverview = await fantasy.getCharacterOverview(tokenId);
-        expect(characterOverview[0]).to.equal("Marcel");
-        expect(characterOverview[1]).to.equal("McSword");
-        expect(characterOverview[2]).to.equal("Human");
-        expect(characterOverview[3]).to.equal(1);
+        expect(characterOverview[0]).to.equal("Ansa");
+        expect(characterOverview[1]).to.equal("Thunderhammer");
+        expect(characterOverview[2]).to.equal("Dwarf");
+        expect(characterOverview[3]).to.equal(0);
         expect(characterOverview[4]).to.equal(1);
-        expect(characterOverview[5]).to.equal(0);
+        expect(characterOverview[5]).to.equal(1);
         expect(await fantasy.isPendingCharacter(0)).to.be.false;
+        console.log(receipt.events);
         const transferEvent = getEvent(receipt.events, "Transfer");
         expect(transferEvent.args.tokenId).to.equal(tokenId);
     });

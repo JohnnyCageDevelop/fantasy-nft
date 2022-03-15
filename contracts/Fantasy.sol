@@ -33,7 +33,7 @@ contract Fantasy is VRFConsumerBaseV2, ERC721, Ownable {
 
     VRFCoordinatorV2Interface COORDINATOR;
     bytes32 keyHash;
-    uint32 callbackGasLimit = 100000;
+    uint32 callbackGasLimit = 1000000;
     uint16 requestConfirmations = 3;
     uint64 subscriptionId;
 
@@ -216,7 +216,11 @@ contract Fantasy is VRFConsumerBaseV2, ERC721, Ownable {
         _safeMint(pendingCharacter.owner, pendingCharacter.tokenId);
 
         delete pendingCharacterByRequestId[requestId];
+
+        emit BestEvent("hello");
     }
+
+    event BestEvent(string name);
 
     function generateStat(uint256 randomness, uint256 bonus)
         internal
