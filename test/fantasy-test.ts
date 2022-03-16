@@ -80,4 +80,19 @@ describe("Fantasy", () => {
         await expect(fantasy.removeRaceModule(humanModule.address)).to.be.revertedWith("unknown race");
     });
 
+    it("Can remove modules that have been added", async () => {
+        const { fantasy } = await deployFantasyWithDependencies(false);
+        const humanModule = await deployAndAddRaceModule(fantasy, "HumanModule");
+
+        // sanity checks
+        expect(await fantasy.getRaceModulesCount()).to.equal(1); 
+        const humanModuleAddress = await fantasy.getRaceModuleAddress(await humanModule.getRaceName());
+        expect(humanModuleAddress).to.equal(humanModule.address);
+        
+        const tx = await fantasy.removeRaceModule("Human");
+        await tx.wait();
+
+        expect(await fantasy.getRaceModulesCount()).to.equal(0);
+        await expect(fantasy.getRaceModuleAddress(await humanModule.getRaceName())).to.be.revertedWith("unknown race");
+    });
 });     
