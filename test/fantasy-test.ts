@@ -71,7 +71,7 @@ describe("Fantasy", () => {
         await expect(fantasy.addRaceModule(mockHumanModule.address)).to.be.revertedWith("race already added");
     });
 
-    it("Cannot remove a module that is not added", async () => {
+    it("Reverts if trying to remove a module that is not added", async () => {
         const { fantasy } = await deployFantasyWithDependencies(false);
         const HumanModule = await ethers.getContractFactory("HumanModule");
         const humanModule = await HumanModule.deploy();
@@ -79,4 +79,5 @@ describe("Fantasy", () => {
 
         await expect(fantasy.removeRaceModule(humanModule.address)).to.be.revertedWith("unknown race");
     });
+
 });     
