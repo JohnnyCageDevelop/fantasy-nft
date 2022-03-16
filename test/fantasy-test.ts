@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import { pid } from "process";
 import { deployAndAddRaceModule, deployFantasyWithDependencies } from "../scripts/deploy";
 import { createCharacterAndFinishGeneration, getArtistFee, getEvent } from "../scripts/utils";
 
@@ -68,5 +69,14 @@ describe("Fantasy", () => {
         await mockHumanModule.deployed();
         
         await expect(fantasy.addRaceModule(mockHumanModule.address)).to.be.revertedWith("race already added");
+    });
+
+    it("Cannot remove a module that is not added", async () => {
+        const { fantasy } = await deployFantasyWithDependencies(false);
+        const HumanModule = await ethers.getContractFactory("HumanModule");
+        const humanModule = await HumanModule.deploy();
+        await humanModule.deployed();
+
+        await expect(fantasy.removeRaceModule(humanModule.address)).to.be.revertedWith("unknown race");
     });
 });     
