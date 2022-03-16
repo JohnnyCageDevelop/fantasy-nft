@@ -43,6 +43,23 @@ describe("Fantasy", () => {
         expect(dungeonCreated.args.treasure).to.equal(treasure);
     });
 
+    it("Reverts if trying to create a dungeon when one already exists", async () => {
+        const { fantasy, vrfCoordinatorV2, fantasyUtils } = await deployFantasyWithDependencies(true);
+        const dm = await deployDungeonManager({
+            fantasyAddress: fantasy.address,
+            vrfCoordinatorV2Address: vrfCoordinatorV2.address,
+            fantasyUtilsAddress: fantasyUtils.address
+        });
+        const accounts = await ethers.getSigners();
+        const account = accounts[0];
+        const dmWithSigner = dm.connect(account);
+        const treasure = ethers.utils.parseEther("1");
+
+        const tx = await dmWithSigner.createDungeon({ value: treasure });
+        
+        await expect(dmWithSigner.createDungeon({ value: treasure })).to.be.revertedWith("dungeon already exists");
+    });
+
     it("Attempting to retire an inactive dungeon", async () => {
         const { fantasy, vrfCoordinatorV2, fantasyUtils } = await deployFantasyWithDependencies(true);
         const dm = await deployDungeonManager({
