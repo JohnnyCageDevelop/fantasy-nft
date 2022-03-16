@@ -187,6 +187,43 @@ describe("Fantasy", () => {
         const chanceToSucceed = await dm.getAventurersChanceToSucceed(tokenIds, treasure);
         expect(party[2]).to.equal(chanceToSucceed); 
     });
+
+    it("Reverts if trying to raid a dungeon that is already being raided", async () => {
+          // TODO: Parametize for for tokens_count [1,2]
+          const tokensCount = 1;
+          const { fantasy, vrfCoordinatorV2, fantasyUtils } = await deployFantasyWithDependencies(true);
+          const dm = await deployDungeonManager({
+              fantasyAddress: fantasy.address,
+              vrfCoordinatorV2Address: vrfCoordinatorV2.address,
+              fantasyUtilsAddress: fantasyUtils.address
+          });
+          const accounts = await ethers.getSigners();
+          const dungeonCreator = accounts[0];
+          const partyOwner = accounts[1];
+          const secondPartyOwner = accounts[2];
+          const dmWithDungeonCreatorSigner = dm.connect(dungeonCreator);
+          const treasure = ethers.utils.parseEther("1");
+          (await dmWithDungeonCreatorSigner.createDungeon({ value: treasure })).wait();
+          const dmWithPartyOwnerSigner = dm.connect(partyOwner);
+          const dmWithSecondPartyOwnerSigner = dm.connect(secondPartyOwner);
+          const fantasyWithPartyOwnerSigner = fantasy.connect(partyOwner);
+          const fantasyWithSecondPartyOwnerSigner = fantasy.connect(secondPartyOwner);
+          const tokenIds = await createTokens({
+              fantasyWithSigner: fantasyWithPartyOwnerSigner,
+              vrfCoordinatorV2WithSigner: vrfCoordinatorV2.connect(dungeonCreator),
+              tokensCount
+          });
+          const secondTokenIds = await createTokens({
+            fantasyWithSigner: fantasyWithSecondPartyOwnerSigner,
+            vrfCoordinatorV2WithSigner: vrfCoordinatorV2.connect(dungeonCreator),
+            tokensCount
+        });
+          await fantasyWithPartyOwnerSigner.setApprovalForAll(dm.address, true);
+          await fantasyWithSecondPartyOwnerSigner.setApprovalForAll(dm.address, true);
+          await dmWithPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, tokenIds);
+
+          await expect(dmWithSecondPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, secondTokenIds)).to.be.revertedWith("some adventurers are already in this dungeon");
+    });
 });
 
 
