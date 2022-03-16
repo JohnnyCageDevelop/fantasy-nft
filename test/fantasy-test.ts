@@ -48,12 +48,16 @@ describe("Fantasy", () => {
 
     it("Can add a race module if it's not already added", async () => {
         const { fantasy } = await deployFantasyWithDependencies(false);
+        expect(await fantasy.getRaceModulesCount()).to.equal(0); // sanity check
         const humanModule = await deployAndAddRaceModule(fantasy, "HumanModule");
+        const dwarfModule = await deployAndAddRaceModule(fantasy, "DwarfModule");
 
-        expect(await fantasy.getRaceModulesCount()).to.equal(1);
+        expect(await fantasy.getRaceModulesCount()).to.equal(2);
         
-        const moduleAddress = await fantasy.getRaceModuleAddress(await humanModule.getRaceName());
-        expect(moduleAddress).to.equal(humanModule.address);
+        const humanModuleAddress = await fantasy.getRaceModuleAddress(await humanModule.getRaceName());
+        expect(humanModuleAddress).to.equal(humanModule.address);
+        const dwarfModuleAddress = await fantasy.getRaceModuleAddress(await dwarfModule.getRaceName());
+        expect(dwarfModuleAddress).to.equal(dwarfModule.address);
     });
 
     it("Reverts if trying to add a module that already exists", async () => {
