@@ -58,7 +58,7 @@ describe("Fantasy", () => {
 
     it("Reverts if trying to add a module that already exists", async () => {
         const { fantasy } = await deployFantasyWithDependencies(false);
-        const humanModule = await deployAndAddRaceModule(fantasy, "HumanModule");
+        await deployAndAddRaceModule(fantasy, "HumanModule");
         const MockHumanModule = await ethers.getContractFactory("MockHumanModule");
         const mockHumanModule = await MockHumanModule.deploy();
         await mockHumanModule.deployed();
