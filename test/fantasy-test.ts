@@ -71,7 +71,7 @@ describe("Fantasy", () => {
         await expect(fantasy.addRaceModule(mockHumanModule.address)).to.be.revertedWith("race already added");
     });
 
-    it("Reverts if trying to remove a module that is not added", async () => {
+    it("Reverts if trying to remove a module that has not been added", async () => {
         const { fantasy } = await deployFantasyWithDependencies(false);
         const HumanModule = await ethers.getContractFactory("HumanModule");
         const humanModule = await HumanModule.deploy();
@@ -94,5 +94,14 @@ describe("Fantasy", () => {
 
         expect(await fantasy.getRaceModulesCount()).to.equal(0);
         await expect(fantasy.getRaceModuleAddress(await humanModule.getRaceName())).to.be.revertedWith("unknown race");
+    });
+
+    it("Reverts if trying to update a module that has not been added", async () => {
+        const { fantasy } = await deployFantasyWithDependencies(false);
+        const HumanModule = await ethers.getContractFactory("HumanModule");
+        const humanModule = await HumanModule.deploy();
+        await humanModule.deployed();
+
+        await expect(fantasy.updateRaceModule(humanModule.address)).to.be.revertedWith("unknown race");
     });
 });     
