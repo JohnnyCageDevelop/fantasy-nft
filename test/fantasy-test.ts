@@ -104,4 +104,19 @@ describe("Fantasy", () => {
 
         await expect(fantasy.updateRaceModule(humanModule.address)).to.be.revertedWith("unknown race");
     });
+
+    it("Can update a module that has been added", async () => {
+        const { fantasy } = await deployFantasyWithDependencies(false);
+        const humanModule = await deployAndAddRaceModule(fantasy, "HumanModule");
+        const MockHumanModule = await ethers.getContractFactory("MockHumanModule");
+        const mockHumanModule = await MockHumanModule.deploy();
+        await mockHumanModule.deployed();
+        const humanRaceName = await humanModule.getRaceName();
+
+        const tx = await fantasy.updateRaceModule(mockHumanModule.address);
+        await tx.wait();
+
+        const newHumanModuleAddressOnFantasy = await fantasy.getRaceModuleAddress(humanRaceName);
+        expect(newHumanModuleAddressOnFantasy).to.equal(mockHumanModule.address);
+    });
 });     
