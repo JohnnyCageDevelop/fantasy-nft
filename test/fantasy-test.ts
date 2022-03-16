@@ -119,4 +119,21 @@ describe("Fantasy", () => {
         const newHumanModuleAddressOnFantasy = await fantasy.getRaceModuleAddress(humanRaceName);
         expect(newHumanModuleAddressOnFantasy).to.equal(mockHumanModule.address);
     });
+
+    it("Updates the right module", async () => {
+        const { fantasy } = await deployFantasyWithDependencies(false);
+        const humanModule = await deployAndAddRaceModule(fantasy, "HumanModule");
+        const dwarfModule = await deployAndAddRaceModule(fantasy, "DwarfModule");
+        const MockHumanModule = await ethers.getContractFactory("MockHumanModule");
+        const mockHumanModule = await MockHumanModule.deploy();
+        await mockHumanModule.deployed();
+        const humanRaceName = await humanModule.getRaceName();
+
+        const tx = await fantasy.updateRaceModule(mockHumanModule.address);
+        await tx.wait();
+
+        const newHumanModuleAddressOnFantasy = await fantasy.getRaceModuleAddress(humanRaceName);
+        expect(newHumanModuleAddressOnFantasy).to.equal(mockHumanModule.address);
+        expect(await fantasy.getRaceModuleAddress(await dwarfModule.getRaceName())).to.equal(dwarfModule.address);
+    });
 });     
