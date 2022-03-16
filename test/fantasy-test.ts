@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { deployFantasyWithDependencies } from "../scripts/deploy";
+import { deployAndAddRaceModule, deployFantasyWithDependencies } from "../scripts/deploy";
 import { createCharacterAndFinishGeneration, getArtistFee, getEvent } from "../scripts/utils";
 
 describe("Fantasy", () => {
@@ -33,7 +33,7 @@ describe("Fantasy", () => {
         const tokenId = getEvent(createCharacterReceipt.events, "CharacterGenerationStarted").args.tokenId;
         const requestId = await fantasyWithSigner.requestIdByTokenId(tokenId);
         const tx = await vrfCoordinatorV2WithSigner.fulfillRandomWords(requestId, fantasyWithSigner.address);
-        const receipt = await tx.wait();
+        await tx.wait();
 
         expect(await fantasy.ownerOf(0)).to.equal(account.address);
         const characterOverview = await fantasy.getCharacterOverview(tokenId);
@@ -44,5 +44,18 @@ describe("Fantasy", () => {
         expect(characterOverview[4]).to.equal(1);
         expect(characterOverview[5]).to.equal(1);
         expect(await fantasy.isPendingCharacter(0)).to.be.false;
+    });
+
+    it("Can add a race module if it's not already added", async () => {
+        const { fantasy, vrfCoordinatorV2 } = await deployFantasyWithDependencies(false);
+        const owner = fantasy.signer;
+        const fantasyWithSigner = fantasy.connect(owner);
+        
+        const humanModule = await deployAndAddRaceModule(fantasy, "HumanModule");
+
+        expect(await fantasy.getRaceModulesCount()).to.equal(1);
+        
+        const moduleAddress = await fantasy.getRaceModuleAddress(await humanModule.getRaceName());
+        expect(moduleAddress).to.equal(humanModule.address);
     });
 });     
