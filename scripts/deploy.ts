@@ -58,9 +58,9 @@ async function deployFantasy({
     return fantasy;
 }
 
-export async function deployAndAddRaceModule(fantasyWithSigner: Contract, moduleName: string): Promise<Contract> {
+export async function deployAndAddRaceModule(fantasy: Contract, moduleName: string): Promise<Contract> {
     const module = await deployContractWithoutArguments(moduleName);
-    await fantasyWithSigner.addRaceModule(module.address);
+    await fantasy.addRaceModule(module.address);
     return module;
 }
 

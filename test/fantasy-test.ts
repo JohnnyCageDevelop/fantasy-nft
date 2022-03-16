@@ -47,15 +47,22 @@ describe("Fantasy", () => {
     });
 
     it("Can add a race module if it's not already added", async () => {
-        const { fantasy, vrfCoordinatorV2 } = await deployFantasyWithDependencies(false);
-        const owner = fantasy.signer;
-        const fantasyWithSigner = fantasy.connect(owner);
-        
+        const { fantasy } = await deployFantasyWithDependencies(false);
         const humanModule = await deployAndAddRaceModule(fantasy, "HumanModule");
 
         expect(await fantasy.getRaceModulesCount()).to.equal(1);
         
         const moduleAddress = await fantasy.getRaceModuleAddress(await humanModule.getRaceName());
         expect(moduleAddress).to.equal(humanModule.address);
+    });
+
+    it("Reverts if trying to add a module that already exists", async () => {
+        const { fantasy } = await deployFantasyWithDependencies(false);
+        const humanModule = await deployAndAddRaceModule(fantasy, "HumanModule");
+        const MockHumanModule = await ethers.getContractFactory("MockHumanModule");
+        const mockHumanModule = await MockHumanModule.deploy();
+        await mockHumanModule.deployed();
+        
+        await expect(fantasy.addRaceModule(mockHumanModule.address)).to.be.revertedWith("race already added");
     });
 });     
