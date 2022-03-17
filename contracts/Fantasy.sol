@@ -217,7 +217,7 @@ contract Fantasy is VRFConsumerBaseV2, ERC721, Ownable {
         delete pendingCharacterByRequestId[requestId];
     }
 
-        function generateStat(uint256 randomness, uint256 bonus)
+    function generateStat(uint256 randomness, uint256 bonus)
         internal
         pure
         returns (uint256)
