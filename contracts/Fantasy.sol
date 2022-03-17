@@ -211,7 +211,6 @@ contract Fantasy is VRFConsumerBaseV2, ERC721, Ownable {
             gender: gender
         });
 
-        // TODO the two lines below (each of them) apepar to be stoing execution of the code ? Swallowed error ?
         characters[pendingCharacter.tokenId] = character;
         _safeMint(pendingCharacter.owner, pendingCharacter.tokenId);
 
