@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { BigNumberish, Contract } from "ethers";
+import { BigNumber, BigNumberish, Contract } from "ethers";
 import { ethers, waffle } from "hardhat";
 import { deployDungeonManager, deployFantasyWithDependencies } from "../scripts/deploy";
 import { createTokens, getArtistFee, getEvent } from "../scripts/utils";
@@ -56,7 +56,7 @@ describe("Fantasy", () => {
         const treasure = ethers.utils.parseEther("1");
 
         const tx = await dmWithSigner.createDungeon({ value: treasure });
-        
+
         await expect(dmWithSigner.createDungeon({ value: treasure })).to.be.revertedWith("dungeon already exists");
     });
 
@@ -119,10 +119,10 @@ describe("Fantasy", () => {
         const dmWithPartyOwnerSigner = dm.connect(partyOwner);
         const fantasyWithPartyOwnerSigner = fantasy.connect(partyOwner);
         await fantasyWithPartyOwnerSigner.setApprovalForAll(dm.address, true);
-        
+
         await expect(dmWithPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, [])).to.be.revertedWith("At least 1 token needs to be sent to the dungeon");
     });
-    
+
     it("Reverts when attempting to raid a dungeon with no chance to succeed", async () => {
         // TODO: Parametize for for tokens_count [1,2]
         const tokensCount = 1;
@@ -185,44 +185,75 @@ describe("Fantasy", () => {
         expect(party[0]).to.equal(partyOwner.address);
         expect(party[1]).to.deep.equal(tokenIds);
         const chanceToSucceed = await dm.getAventurersChanceToSucceed(tokenIds, treasure);
-        expect(party[2]).to.equal(chanceToSucceed); 
+        expect(party[2]).to.equal(chanceToSucceed);
     });
 
     it("Reverts if trying to raid a dungeon that is already being raided", async () => {
-          // TODO: Parametize for for tokens_count [1,2]
-          const tokensCount = 1;
-          const { fantasy, vrfCoordinatorV2, fantasyUtils } = await deployFantasyWithDependencies(true);
-          const dm = await deployDungeonManager({
-              fantasyAddress: fantasy.address,
-              vrfCoordinatorV2Address: vrfCoordinatorV2.address,
-              fantasyUtilsAddress: fantasyUtils.address
-          });
-          const accounts = await ethers.getSigners();
-          const dungeonCreator = accounts[0];
-          const partyOwner = accounts[1];
-          const secondPartyOwner = accounts[2];
-          const dmWithDungeonCreatorSigner = dm.connect(dungeonCreator);
-          const treasure = ethers.utils.parseEther("1");
-          (await dmWithDungeonCreatorSigner.createDungeon({ value: treasure })).wait();
-          const dmWithPartyOwnerSigner = dm.connect(partyOwner);
-          const dmWithSecondPartyOwnerSigner = dm.connect(secondPartyOwner);
-          const fantasyWithPartyOwnerSigner = fantasy.connect(partyOwner);
-          const fantasyWithSecondPartyOwnerSigner = fantasy.connect(secondPartyOwner);
-          const tokenIds = await createTokens({
-              fantasyWithSigner: fantasyWithPartyOwnerSigner,
-              vrfCoordinatorV2WithSigner: vrfCoordinatorV2.connect(dungeonCreator),
-              tokensCount
-          });
-          const secondTokenIds = await createTokens({
+        // TODO: Parametize for for tokens_count [1,2]
+        const tokensCount = 1;
+        const { fantasy, vrfCoordinatorV2, fantasyUtils } = await deployFantasyWithDependencies(true);
+        const dm = await deployDungeonManager({
+            fantasyAddress: fantasy.address,
+            vrfCoordinatorV2Address: vrfCoordinatorV2.address,
+            fantasyUtilsAddress: fantasyUtils.address
+        });
+        const accounts = await ethers.getSigners();
+        const dungeonCreator = accounts[0];
+        const partyOwner = accounts[1];
+        const secondPartyOwner = accounts[2];
+        const dmWithDungeonCreatorSigner = dm.connect(dungeonCreator);
+        const treasure = ethers.utils.parseEther("1");
+        (await dmWithDungeonCreatorSigner.createDungeon({ value: treasure })).wait();
+        const dmWithPartyOwnerSigner = dm.connect(partyOwner);
+        const dmWithSecondPartyOwnerSigner = dm.connect(secondPartyOwner);
+        const fantasyWithPartyOwnerSigner = fantasy.connect(partyOwner);
+        const fantasyWithSecondPartyOwnerSigner = fantasy.connect(secondPartyOwner);
+        const tokenIds = await createTokens({
+            fantasyWithSigner: fantasyWithPartyOwnerSigner,
+            vrfCoordinatorV2WithSigner: vrfCoordinatorV2.connect(dungeonCreator),
+            tokensCount
+        });
+        const secondTokenIds = await createTokens({
             fantasyWithSigner: fantasyWithSecondPartyOwnerSigner,
             vrfCoordinatorV2WithSigner: vrfCoordinatorV2.connect(dungeonCreator),
             tokensCount
         });
-          await fantasyWithPartyOwnerSigner.setApprovalForAll(dm.address, true);
-          await fantasyWithSecondPartyOwnerSigner.setApprovalForAll(dm.address, true);
-          await dmWithPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, tokenIds);
+        await fantasyWithPartyOwnerSigner.setApprovalForAll(dm.address, true);
+        await fantasyWithSecondPartyOwnerSigner.setApprovalForAll(dm.address, true);
+        await dmWithPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, tokenIds);
 
-          await expect(dmWithSecondPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, secondTokenIds)).to.be.revertedWith("some adventurers are already in this dungeon");
+        await expect(dmWithSecondPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, secondTokenIds)).to.be.revertedWith("some adventurers are already in this dungeon");
+    });
+
+    it("Computes the correct chance to succeed", async () => {
+        // TODO: Parametize for for treasure in eth [0.1, 1, 52, 100] and tokensCount [1,2]
+        const tokensCount = 1;
+        const treasureInEth = 1;
+        const treasure = ethers.utils.parseEther(treasureInEth.toString());
+        const { fantasy, vrfCoordinatorV2, fantasyUtils } = await deployFantasyWithDependencies(true);
+        const dm = await deployDungeonManager({
+            fantasyAddress: fantasy.address,
+            vrfCoordinatorV2Address: vrfCoordinatorV2.address,
+            fantasyUtilsAddress: fantasyUtils.address
+        });
+        const accounts = await ethers.getSigners();
+        const dungeonCreator = accounts[0];
+        const partyOwner = accounts[1];
+        const dmWithDungeonCreatorSigner = dm.connect(dungeonCreator);
+        (await dmWithDungeonCreatorSigner.createDungeon({ value: treasure })).wait();
+        const fantasyWithPartyOwnerSigner = fantasy.connect(partyOwner);
+        const tokenIds = await createTokens({
+            fantasyWithSigner: fantasyWithPartyOwnerSigner,
+            vrfCoordinatorV2WithSigner: vrfCoordinatorV2.connect(dungeonCreator),
+            tokensCount
+        });
+
+        const chance: BigNumber = await dm.getAventurersChanceToSucceed(tokenIds, treasure);
+
+        const baseChance: BigNumber = await dm.baseSuccessChancePerc();
+        const chanceWithoutTreasure = baseChance.add(tokensCount);
+        const expected = chanceWithoutTreasure.gt(treasureInEth) ? chanceWithoutTreasure.sub(treasureInEth) : ethers.constants.Zero;
+        expect(chance).to.equal(expected);
     });
 });
 
