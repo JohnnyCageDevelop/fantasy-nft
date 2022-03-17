@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { BigNumber, BigNumberish, Contract } from "ethers";
+import { BigNumber, BigNumberish, Contract, ContractTransaction } from "ethers";
 
 // TOOD best practices ??
 export function getKeyHash(): string {
@@ -70,4 +70,8 @@ export async function createCharacter(fantasyWithSigner: Contract) {
     const tokenId = getEvent(receipt.events, "CharacterGenerationStarted").args.tokenId;
     console.log("tokenId: " + tokenId);
     return tokenId;
+}
+
+export async function waitForTx(tx: Promise<ContractTransaction>) {
+    await (await tx).wait();
 }

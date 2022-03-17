@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { BigNumber, BigNumberish, Contract } from "ethers";
 import { ethers, waffle } from "hardhat";
 import { deployDungeonManager, deployFantasyWithDependencies } from "../scripts/deploy";
-import { createTokens, getArtistFee, getEvent } from "../scripts/utils";
+import { createTokens, getArtistFee, getEvent, waitForTx } from "../scripts/utils";
 
 // TODO: Only run unit tests in local blockchain
 describe("Fantasy", () => {
@@ -254,6 +254,50 @@ describe("Fantasy", () => {
         const chanceWithoutTreasure = baseChance.add(tokensCount);
         const expected = chanceWithoutTreasure.gt(treasureInEth) ? chanceWithoutTreasure.sub(treasureInEth) : ethers.constants.Zero;
         expect(chance).to.equal(expected);
+    });
+
+    it("Emits a DungeonRaidOutcome event and makes gives the correct rewards when the dungeon raid is successfull", async () => {
+        // TODO: Parametize for for tokens_count [1,2,10]
+        const tokensCount = 1;
+        const { fantasy, vrfCoordinatorV2, fantasyUtils } = await deployFantasyWithDependencies(true);
+        const dm = await deployDungeonManager({
+            fantasyAddress: fantasy.address,
+            vrfCoordinatorV2Address: vrfCoordinatorV2.address,
+            fantasyUtilsAddress: fantasyUtils.address
+        });
+        const accounts = await ethers.getSigners();
+        const dungeonCreator = accounts[0];
+        const partyOwner = accounts[1];
+        const dmWithDungeonCreatorSigner = dm.connect(dungeonCreator);
+        const treasure = ethers.utils.parseEther("1");
+        (await dmWithDungeonCreatorSigner.createDungeon({ value: treasure })).wait();
+        const dmWithPartyOwnerSigner = dm.connect(partyOwner);
+        const fantasyWithPartyOwnerSigner = fantasy.connect(partyOwner);
+        const tokenIds = await createTokens({
+            fantasyWithSigner: fantasyWithPartyOwnerSigner,
+            vrfCoordinatorV2WithSigner: vrfCoordinatorV2.connect(dungeonCreator),
+            tokensCount
+        });
+        await fantasyWithPartyOwnerSigner.setApprovalForAll(dm.address, true);
+
+        await waitForTx(dmWithPartyOwnerSigner.startDungeonRaid(dungeonCreator.address, tokenIds));
+        const randomWord = 1;
+        const expectedRoll = randomWord + 1;
+        const dungeon = await dm.dungeons(dungeonCreator.address);
+        const tx = await vrfCoordinatorV2.fulfillRandomWords(dungeon[3], dm.address);
+        const receipt = await tx.wait();
+        console.log(receipt);
+
+        const dungeonRaidOutcomeEvent = getEvent(receipt.events, "DungeonRaidOutcome");
+        expect(dungeonRaidOutcomeEvent.args.dungeonCreator).to.equal(dungeonCreator.address);
+        expect(dungeonRaidOutcomeEvent.args.partyOwner).to.equal(partyOwner.address);
+        expect(dungeonRaidOutcomeEvent.args.tokenIds).to.equal(tokenIds);
+        expect(dungeonRaidOutcomeEvent.args.roll).to.equal(expectedRoll);
+        expectDungeonDoesntExist(await dm.dungeons(dungeonCreator.address));
+        const reward = await dm.claimableRewards(partyOwner.address, 0);
+        expect(reward[0]).to.eql(tokenIds);
+        expect(reward[1]).to.eql(treasure);
+        await expect(dm.claimableRewards(partyOwner.address, 1)).to.be.reverted;
     });
 });
 
