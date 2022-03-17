@@ -216,13 +216,9 @@ contract Fantasy is VRFConsumerBaseV2, ERC721, Ownable {
         _safeMint(pendingCharacter.owner, pendingCharacter.tokenId);
 
         delete pendingCharacterByRequestId[requestId];
-
-        emit BestEvent("hello");
     }
 
-    event BestEvent(string name);
-
-    function generateStat(uint256 randomness, uint256 bonus)
+        function generateStat(uint256 randomness, uint256 bonus)
         internal
         pure
         returns (uint256)
