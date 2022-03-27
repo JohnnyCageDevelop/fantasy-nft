@@ -4,6 +4,24 @@ TODO:
 # hardhat migration todo
 - Migrate tests to ts
 
+Randomly geenrated fantasy characters. 
+Addresses can create a dungeon with treasure by staking their ETH.
+Players can the send their characters to the dungeon.
+If they win, they claim the ETH and the dungeon is destroyed. 
+If they loose, they get captured and get their ownership transferred to the dungeon creator.
+
+Character races can be added after the contract is on chain.
+
+
+## Code overview:
+
+Fantasy.sol has the core NFT logic with the character generation.
+DungeonManager.sol handles the dungoen creation / raiding logic.
+
+In modules, you can find race modules as well as the base race module to inherit from if you want to create your own.
+
+## TODOs:
+
 Character class module ?
 
 1. Finish Todos in DungeonManager.sol
