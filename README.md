@@ -1,8 +1,4 @@
-TODO:
-
-
-# hardhat migration todo
-- Migrate tests to ts
+## Overview
 
 Randomly geenrated fantasy characters. 
 Addresses can create a dungeon with treasure by staking their ETH.
